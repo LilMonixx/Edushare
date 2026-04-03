@@ -35,6 +35,16 @@ dependencies:
   # Use with the CupertinoIcons class for iOS style icons.
   cupertino_icons: ^1.0.8
 
+  flutter_riverpod: ^2.5.1 
+  # Network
+  dio: ^5.4.3              # Gọi API FastAPI
+  # Camera & Images
+  camera: ^0.11.0          # Quét tài liệu
+  image_picker: ^1.1.0     # Chọn ảnh từ máy
+  # UI & Navigation
+  go_router: ^14.2.0       # Quản lý luồng màn hình
+  google_fonts: ^6.2.1     # Font chữ đẹp cho UI
+
 dev_dependencies:
   flutter_test:
     sdk: flutter
