@@ -14,6 +14,8 @@ class _AIScanScreenState extends State<AIScanScreen> {
   CameraController? controller;
   List<CameraDescription>? cameras;
 
+
+
   bool isFlashOn = false;
   bool isRearCamera = true;
   bool isLoading = true;

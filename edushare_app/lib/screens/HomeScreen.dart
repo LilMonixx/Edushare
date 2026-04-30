@@ -1,4 +1,4 @@
-import 'dart:io';
+
 import 'dart:ui';
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:edushare_app/screens/AI_quiz.dart';
@@ -8,10 +8,8 @@ import 'package:edushare_app/screens/UploadQuestion.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
-import '../Database/db_helper.dart';
-import '../models/Question.dart';
-import '../providers/UserProvider.dart';
 import '../providers/auth_provider.dart';
+import '../models/Question.dart';
 import '../providers/question_provider.dart';
 import '../widgets/BottomBar.dart';
 import '../widgets/QuestionCard.dart';
@@ -39,6 +37,8 @@ class _HomeScreenState extends State<HomeScreen>
   bool isOffline = false;
   bool loadingQuestions = true;
 
+  final ScrollController _scrollController = ScrollController();
+
   @override
   void initState() {
     super.initState();
@@ -48,13 +48,27 @@ class _HomeScreenState extends State<HomeScreen>
       duration: const Duration(milliseconds: 400),
     );
 
+    _scrollController.addListener(_onScroll);
+
     radialScreens = [
       const QuizGeneratorScreen(),
       const CreatePostScreen(),
       const AIScanScreen(),
     ];
 
-    _initLoad();
+    _initLoad(); // 👈 BỎ COMMENT
+  }
+
+
+  void _onScroll() {
+    if (_scrollController.position.pixels >
+        _scrollController.position.maxScrollExtent - 200) {
+      final provider = context.read<QuestionProvider>();
+
+      if (!provider.loading && provider.hasMore) {
+        provider.loadMore();
+      }
+    }
   }
 
   Future<void> _initLoad() async {
@@ -62,11 +76,14 @@ class _HomeScreenState extends State<HomeScreen>
 
     if (!mounted) return;
 
-    context.read<QuestionProvider>().load(online);
+    await context.read<QuestionProvider>().loadInitial();
   }
+
+
   @override
   void dispose() {
     _controller.dispose();
+    _scrollController.dispose(); // 👈 THÊM
     super.dispose();
   }
 
@@ -182,128 +199,151 @@ class _HomeScreenState extends State<HomeScreen>
     final loading = questionProvider.loading;
 
     return SafeArea(
-      child: ListView(
-        padding: const EdgeInsets.symmetric(horizontal: 20),
-        children: [
-          const SizedBox(height: 20),
+      child: RefreshIndicator(
+        color: Colors.green,
+        backgroundColor: Colors.black,
+        onRefresh: () async {
+          await context.read<QuestionProvider>().loadInitial();
+        },
+        child: ListView(
+          controller: _scrollController,
+          physics: const AlwaysScrollableScrollPhysics(),
+          padding: const EdgeInsets.symmetric(horizontal: 20),
+          children: [
+            const SizedBox(height: 20),
 
-          // ================= HEADER =================
-          Row(
-            children: [
-              CircleAvatar(
-                radius: 26,
-                backgroundColor: const Color(0xFF22C55E),
-                backgroundImage: (user?.photoURL != null &&
-                    user!.photoURL!.isNotEmpty)
-                    ? NetworkImage(user.photoURL!)
-                    : null,
-                child: (user?.photoURL == null || user!.photoURL!.isEmpty)
-                    ? Text(
-                  (user?.displayName != null &&
-                      user!.displayName!.isNotEmpty)
-                      ? user.displayName![0].toUpperCase()
-                      : "?",
-                  style: const TextStyle(
-                    color: Colors.black,
+            /// ================= USER HEADER =================
+            Row(
+              children: [
+                CircleAvatar(
+                  radius: 26,
+                  backgroundColor: const Color(0xFF22C55E),
+                  backgroundImage: (user?.photoURL != null &&
+                      user!.photoURL!.isNotEmpty)
+                      ? NetworkImage(user.photoURL!)
+                      : null,
+                  child: (user?.photoURL == null || user!.photoURL!.isEmpty)
+                      ? Text(
+                    (user?.displayName != null &&
+                        user!.displayName!.isNotEmpty)
+                        ? user.displayName![0].toUpperCase()
+                        : "?",
+                    style: const TextStyle(
+                      color: Colors.black,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  )
+                      : null,
+                ),
+
+                const SizedBox(width: 14),
+
+                Expanded(
+                  child: GestureDetector(
+                    onTapDown: (details) {
+                      _showUserMenu(context, details.globalPosition);
+                    },
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Text(
+                          "Good morning",
+                          style: TextStyle(color: Colors.white54),
+                        ),
+                        const SizedBox(height: 4),
+                        Text(
+                          user?.displayName ?? "User",
+                          style: const TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+
+                IconButton(
+                  icon: const Icon(Icons.notifications_none,
+                      color: Colors.white70),
+                  onPressed: () {},
+                ),
+
+                IconButton(
+                  icon: const Icon(Icons.search, color: Colors.white70),
+                  onPressed: () {},
+                ),
+              ],
+            ),
+
+            const SizedBox(height: 20),
+
+            /// ================= ASK CARD =================
+            _buildAskCard(),
+
+            const SizedBox(height: 26),
+
+            /// ================= SUBJECTS =================
+            _buildSubjects(),
+
+            const SizedBox(height: 30),
+
+            /// ================= HEADER =================
+            const Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(
+                  "Trending Questions",
+                  style: TextStyle(
+                    fontSize: 20,
                     fontWeight: FontWeight.bold,
                   ),
-                )
-                    : null,
-              ),
+                ),
+                Text(
+                  "See all",
+                  style: TextStyle(color: Colors.green),
+                ),
+              ],
+            ),
 
-              const SizedBox(width: 14),
+            const SizedBox(height: 16),
 
-              Expanded(
-                child: GestureDetector(
-                  onTapDown: (details) {
-                    _showUserMenu(context, details.globalPosition);
-                  },
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      const Text(
-                        "Good morning",
-                        style: TextStyle(color: Colors.white54),
-                      ),
-                      const SizedBox(height: 4),
-                      Text(
-                        user?.displayName ?? "User",
-                        style: const TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.bold,
+            /// ================= CONTENT =================
+            if (loading)
+              const Padding(
+                padding: EdgeInsets.all(30),
+                child: Center(child: CircularProgressIndicator()),
+              )
+            else if (questions.isEmpty)
+              const Padding(
+                padding: EdgeInsets.all(30),
+                child: Text(
+                  "No data",
+                  style: TextStyle(color: Colors.white54),
+                ),
+              )
+            else
+              ...questions.map(
+                    (q) => Padding(
+                  padding: const EdgeInsets.only(bottom: 16),
+                  child: QuestionCard(
+                    question: q,
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) =>
+                              QuestionDetailScreen(question: q),
                         ),
-                      ),
-                    ],
+                      );
+                    },
                   ),
                 ),
               ),
 
-              // 🔥 THÊM NOTIFICATION ICON Ở ĐÂY
-              IconButton(
-                icon: const Icon(Icons.notifications_none, color: Colors.white70),
-                onPressed: () {
-                  print("Open notifications");
-                },
-              ),
-
-              // 🔥 SEARCH ICON
-              IconButton(
-                icon: const Icon(Icons.search, color: Colors.white70),
-                onPressed: () {},
-              ),
-            ],
-          ),
-
-          const SizedBox(height: 20),
-
-          _buildAskCard(),
-          const SizedBox(height: 26),
-          _buildSubjects(),
-
-          const SizedBox(height: 30),
-
-          const Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text(
-                "Trending Questions",
-                style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-              ),
-              Text(
-                "See all",
-                style: TextStyle(color: Colors.green),
-              ),
-            ],
-          ),
-
-          const SizedBox(height: 16),
-
-          if (loading)
-            const Center(child: CircularProgressIndicator())
-          else if (questions.isEmpty)
-            const Padding(
-              padding: EdgeInsets.all(20),
-              child: Text("No data", style: TextStyle(color: Colors.white54)),
-            )
-          else
-            ...questions.map((q) => Padding(
-              padding: const EdgeInsets.only(bottom: 16),
-              child: QuestionCard(
-                question: q,
-                onTap: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (_) =>
-                          QuestionDetailScreen(question: q),
-                    ),
-                  );
-                },
-              ),
-            )),
-
-          const SizedBox(height: 40),
-        ],
+            const SizedBox(height: 40),
+          ],
+        ),
       ),
     );
   }
