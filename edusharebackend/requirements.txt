@@ -1,6 +1,7 @@
-fastapi==0.109.0
+fastapi==0.136.0
 uvicorn==0.27.0
 sqlalchemy==2.0.25
-psycopg2-binary   # Để kết nối PostgreSQL
+firebase-admin==7.4.0
 pydantic-settings # Quản lý cấu hình .env
 python-multipart  # Để nhận file ảnh scan từ mobile
+PyJWT==2.12.1
