@@ -6,7 +6,7 @@ from config.firebase_config import db
 
 router = APIRouter()
 
-# ================= LOGIN =================
+
 @router.post("/login")
 def google_login(data: dict):
     id_token = data.get("id_token")
