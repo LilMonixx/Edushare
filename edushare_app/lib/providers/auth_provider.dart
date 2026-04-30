@@ -45,8 +45,6 @@ class AuthProvider extends ChangeNotifier {
       if (u != null) {
         user = u;
 
-        // notifyListeners(); // 🔥 THÊM DÒNG NÀY (QUAN TRỌNG)
-
         final idToken = await u.getIdToken(true);
 
         final res = await ApiService.post("/login", {

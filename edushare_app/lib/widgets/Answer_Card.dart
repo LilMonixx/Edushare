@@ -3,66 +3,91 @@ import 'package:flutter/material.dart';
 import '../models/Answer.dart';
 
 class AnswerCard extends StatelessWidget {
-  final Answer answer;
+  final dynamic answer;
 
   const AnswerCard({super.key, required this.answer});
+
+  String formatTime(dynamic time) {
+    if (time == null) return "just now";
+
+    DateTime date;
+
+    if (time is String) {
+      date = DateTime.parse(time);
+    } else if (time is int) {
+      date = DateTime.fromMillisecondsSinceEpoch(time);
+    } else {
+      return "just now";
+    }
+
+    final diff = DateTime.now().difference(date);
+
+    if (diff.inMinutes < 60) return "${diff.inMinutes}m ago";
+    if (diff.inHours < 24) return "${diff.inHours}h ago";
+    return "${date.day}/${date.month}/${date.year}";
+  }
 
   @override
   Widget build(BuildContext context) {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: answer.isAccepted
-            ? const Color(0xFF062A1C)
-            : const Color(0xFF1C1C1E),
+        color: const Color(0xFF1C1C1E),
         borderRadius: BorderRadius.circular(16),
-        border: answer.isAccepted
-            ? Border.all(color: const Color(0xFF1ED760))
-            : null,
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          /// HEADER
+
           Row(
             children: [
               CircleAvatar(
-                backgroundColor: const Color(0xFF1C1C1E),
-                child: Text(answer.avatar),
+                backgroundColor: Colors.grey,
+                backgroundImage: answer["userAvatar"] != ""
+                    ? NetworkImage(answer["userAvatar"])
+                    : null,
+                child: answer["userAvatar"] == ""
+                    ? Text(answer["userName"][0])
+                    : null,
               ),
+
               const SizedBox(width: 10),
 
               Expanded(
-                child: Text(
-                  answer.author,
-                  style: const TextStyle(fontWeight: FontWeight.bold),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      answer["userName"],
+                      style: const TextStyle(fontWeight: FontWeight.bold),
+                    ),
+
+                    const SizedBox(height: 2),
+
+                    Text(
+                      formatTime(answer["createdAt"]),
+                      style: const TextStyle(
+                        fontSize: 12,
+                        color: Colors.grey,
+                      ),
+                    ),
+                  ],
                 ),
               ),
-
-              if (answer.isExpert) _badge("Expert"),
-              if (answer.isExpert) const SizedBox(width: 6),
-              if (answer.isAccepted) _acceptedBadge(),
             ],
           ),
 
           const SizedBox(height: 6),
 
           Text(
-            answer.time,
-            style: const TextStyle(color: Colors.grey, fontSize: 12),
-          ),
-
-          const SizedBox(height: 12),
-
-          /// CONTENT
-          Text(
-            answer.content,
+            answer["content"],
             style: const TextStyle(height: 1.5),
-          )
+          ),
         ],
       ),
     );
   }
+
 
   Widget _badge(String text) {
     return Container(

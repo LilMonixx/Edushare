@@ -25,7 +25,6 @@ def google_login(data: dict):
     name = decoded.get("name") or email
     avatar = decoded.get("picture", "")
 
-    # ================= USERS COLLECTION =================
     user_ref = db.collection("users").document(uid)
     user_doc = user_ref.get()
 
@@ -44,7 +43,7 @@ def google_login(data: dict):
             "lastLogin": SERVER_TIMESTAMP
         })
 
-    # ================= RESPONSE TO FLUTTER =================
+    
     return {
         "uid": uid,
         "email": email,

@@ -1,67 +1,86 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import '../models/Question.dart';
-import '../models/Answer.dart';
+import '../providers/AnswerProvider.dart';
 import '../widgets/answer_card.dart';
 
-class QuestionDetailScreen extends StatelessWidget {
+class QuestionDetailScreen extends StatefulWidget {
   final Question question;
 
-  QuestionDetailScreen({
+  const QuestionDetailScreen({
     super.key,
     required this.question,
   });
 
-  final List<Answer> answers = [
-    Answer(
-      author: "Dr. Sarah Math",
-      avatar: "D",
-      time: "1 hour ago",
-      content:
-      "Great question! When the discriminant (b² - 4ac) is negative, you get complex roots.\n\n1. Identify a=1, b=2, c=5\n2. Calculate discriminant: 2² - 4(1)(5) = -16\n3. Apply formula...",
-      isExpert: true,
-      isAccepted: true,
-    ),
-    Answer(
-      author: "John Doe",
-      avatar: "J",
-      time: "2 hours ago",
-      content: "You can solve it using imaginary numbers...",
-    ),
-    Answer(
-      author: "Alice",
-      avatar: "A",
-      time: "3 hours ago",
-      content: "Use quadratic formula with i (√-1)...",
-    ),
-  ];
+  @override
+  State<QuestionDetailScreen> createState() => _QuestionDetailScreenState();
+}
+
+class _QuestionDetailScreenState extends State<QuestionDetailScreen> {
+
+  final TextEditingController _answerController = TextEditingController();
+
+  bool isLiked = false;
+  int likeCount = 0;
+
+  @override
+  void initState() {
+    super.initState();
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      context.read<AnswerProvider>().loadAnswers(widget.question.id);
+    });
+  }
+
+  String _formatTime(DateTime? time) {
+    if (time == null) return "just now";
+
+    final now = DateTime.now();
+    final diff = now.difference(time);
+
+    if (diff.inMinutes < 60) {
+      return "${diff.inMinutes}m ago";
+    } else if (diff.inHours < 24) {
+      return "${diff.inHours}h ago";
+    } else {
+      return "${time.day}/${time.month}/${time.year}";
+    }
+  }
+  void _shareQuestion() {
+    final text = widget.question.content;
+
+    print("Share: $text");
+
+    // TODO: dùng share_plus nếu muốn share thật
+  }
 
   @override
   Widget build(BuildContext context) {
-    /// Sort accepted lên đầu
-    answers.sort((a, b) {
-      if (a.isAccepted == b.isAccepted) return 0;
-      return a.isAccepted ? -1 : 1;
-    });
+    final answerProvider = context.watch<AnswerProvider>();
+    final answers = answerProvider.answers;
+    final loading = answerProvider.loading;
 
     return Scaffold(
       backgroundColor: const Color(0xFF0B0B0B),
       body: SafeArea(
         child: Column(
           children: [
-            /// MAIN SCROLL
+            /// ================= MAIN =================
             Expanded(
               child: SingleChildScrollView(
                 padding: const EdgeInsets.symmetric(horizontal: 16),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
+
                     const SizedBox(height: 8),
 
                     /// HEADER
                     Row(
                       children: [
                         GestureDetector(
-                          onTap: () => Navigator.of(context).maybePop(),
+                          onTap: () => Navigator.pop(context),
                           child: _iconBtn(Icons.arrow_back),
                         ),
                         const Expanded(
@@ -81,25 +100,32 @@ class QuestionDetailScreen extends StatelessWidget {
 
                     const SizedBox(height: 16),
 
-                    /// USER INFO
+                    /// QUESTION USER INFO (FROM DATABASE)
                     Row(
                       children: [
                         CircleAvatar(
                           radius: 22,
                           backgroundColor: const Color(0xFF1C1C1E),
-                          child: Text(
-                            question.name.substring(0, 1),
-                          ),
+                          backgroundImage: widget.question.userAvatar != null
+                              ? NetworkImage(widget.question.userAvatar!)
+                              : null,
+                          child: widget.question.userAvatar == null
+                              ? Text(
+                            widget.question.userName.isNotEmpty
+                                ? widget.question.userName[0].toUpperCase()
+                                : "?",
+                          )
+                              : null,
                         ),
+
                         const SizedBox(width: 12),
 
                         Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text(
-                              question.name,
-                              style:
-                              const TextStyle(fontWeight: FontWeight.w600),
+                              widget.question.userName,
+                              style: const TextStyle(fontWeight: FontWeight.w600),
                             ),
                             const SizedBox(height: 4),
                             const Text(
@@ -109,48 +135,21 @@ class QuestionDetailScreen extends StatelessWidget {
                           ],
                         ),
 
-                        const SizedBox(width: 8),
-
-                        /// TAG
-                        Container(
-                          padding: const EdgeInsets.symmetric(
-                              horizontal: 10, vertical: 4),
-                          decoration: BoxDecoration(
-                            color:
-                            const Color(0xFF1ED760).withOpacity(0.15),
-                            borderRadius: BorderRadius.circular(20),
-                          ),
-                          child: Text(
-                            question.tag,
-                            style: const TextStyle(
-                              color: Color(0xFF1ED760),
-                              fontSize: 12,
-                            ),
-                          ),
-                        ),
-
                         const Spacer(),
 
-                        Row(
-                          children: [
-                            const Icon(Icons.access_time,
-                                size: 14, color: Colors.grey),
-                            const SizedBox(width: 4),
-                            Text(
-                              question.time,
-                              style: const TextStyle(
-                                  fontSize: 12, color: Colors.grey),
-                            )
-                          ],
+                        Text(
+                          _formatTime(widget.question.createdAt),
+                          style: const TextStyle(
+                              fontSize: 12, color: Colors.grey),
                         )
                       ],
                     ),
 
                     const SizedBox(height: 16),
 
-                    /// TITLE
+                    /// QUESTION CONTENT (FROM DB)
                     Text(
-                      question.content,
+                      widget.question.content,
                       style: const TextStyle(
                         fontSize: 20,
                         fontWeight: FontWeight.bold,
@@ -160,69 +159,148 @@ class QuestionDetailScreen extends StatelessWidget {
 
                     const SizedBox(height: 12),
 
-                    /// DESCRIPTION (tạm giữ demo)
-                    const Text(
-                      "Detailed explanation or additional context can be displayed here.",
-                      style: TextStyle(
-                        color: Colors.grey,
-                        height: 1.5,
+                    /// SUBJECT TAG (USE YOUR TAG WIDGET)
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 10, vertical: 6),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFF1ED760).withOpacity(0.15),
+                        borderRadius: BorderRadius.circular(20),
+                      ),
+                      child: Text(
+                        widget.question.subject,
+                        style: const TextStyle(
+                          color: Color(0xFF1ED760),
+                          fontSize: 12,
+                        ),
+                      ),
+                    ),
+
+                    SizedBox(height: 40,),
+
+                    /// ACTION BAR (LIKE + SHARE)
+                    Container(
+                      padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 16),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFF121212), // nền nhẹ tách biệt
+                        border: Border(
+                          top: BorderSide(
+                            color: Colors.white.withOpacity(0.08),
+                            width: 1,
+                          ),
+                        ),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withOpacity(0.3),
+                            blurRadius: 8,
+                            offset: const Offset(0, -2),
+                          ),
+                        ],
+                      ),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+
+                          /// LIKE
+                          GestureDetector(
+                            onTap: () {
+                              setState(() {
+                                isLiked = !isLiked;
+                                likeCount += isLiked ? 1 : -1;
+                              });
+                            },
+                            child: AnimatedContainer(
+                              duration: const Duration(milliseconds: 200),
+                              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                              decoration: BoxDecoration(
+                                color: isLiked
+                                    ? Colors.red.withOpacity(0.15)
+                                    : Colors.transparent,
+                                borderRadius: BorderRadius.circular(20),
+                              ),
+                              child: Row(
+                                children: [
+                                  Icon(
+                                    isLiked ? Icons.favorite : Icons.favorite_border,
+                                    color: isLiked ? Colors.red : Colors.white70,
+                                    size: 26,
+                                  ),
+                                  const SizedBox(width: 6),
+                                  Text(
+                                    "$likeCount",
+                                    style: TextStyle(
+                                      color: isLiked ? Colors.red : Colors.white70,
+                                      fontSize: 16,
+                                      fontWeight: FontWeight.w500,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+
+                          /// SHARE
+                          GestureDetector(
+                            onTap: _shareQuestion,
+                            child: AnimatedContainer(
+                              duration: const Duration(milliseconds: 200),
+                              padding: const EdgeInsets.all(10),
+                              decoration: BoxDecoration(
+                                color: Colors.white.withOpacity(0.05),
+                                borderRadius: BorderRadius.circular(50),
+                              ),
+                              child: const Icon(
+                                Icons.share_outlined,
+                                color: Colors.white70,
+                                size: 24,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+
+                    const SizedBox(height: 20),
+
+                    const Divider(color: Color(0xFF1C1C1E)),
+
+                    const SizedBox(height: 12),
+
+                    /// ANSWER TITLE
+                    Text(
+                      "${answers.length} Answers",
+                      style: const TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
                       ),
                     ),
 
                     const SizedBox(height: 16),
 
-                    /// ACTION BAR
-                    Row(
-                      children: [
-                        const Icon(Icons.favorite_border,
-                            color: Colors.grey),
-                        const SizedBox(width: 6),
-                        Text("${question.likes}",
-                            style:
-                            const TextStyle(color: Colors.grey)),
+                    /// LOADING
+                    if (loading)
+                      const Center(child: CircularProgressIndicator())
 
-                        const SizedBox(width: 20),
+                    /// EMPTY
+                    else if (answers.isEmpty)
+                      const Text(
+                        "No answers yet",
+                        style: TextStyle(color: Colors.grey),
+                      )
 
-                        const Icon(Icons.chat_bubble_outline,
-                            color: Colors.grey),
-                        const SizedBox(width: 6),
-                        Text("${answers.length} Answers",
-                            style:
-                            const TextStyle(color: Colors.grey)),
-
-                        const Spacer(),
-
-                        const Icon(Icons.share, color: Colors.grey),
-                        const SizedBox(width: 16),
-                        const Icon(Icons.bookmark_border,
-                            color: Colors.grey),
-                      ],
-                    ),
-
-                    const Divider(
-                        height: 30, color: Color(0xFF1C1C1E)),
-
-                    /// ANSWERS TITLE
-                    Text(
-                      "${answers.length} Answers",
-                      style: const TextStyle(
-                          fontSize: 18, fontWeight: FontWeight.bold),
-                    ),
-
-                    const SizedBox(height: 16),
-
-                    /// ANSWERS LIST
-                    ListView.builder(
-                      shrinkWrap: true,
-                      physics: const NeverScrollableScrollPhysics(),
-                      itemCount: answers.length,
-                      itemBuilder: (context, index) {
-                        return Padding(
-                          padding: const EdgeInsets.only(bottom: 12),
-                          child: AnswerCard(answer: answers[index]),
-                        );
-                      },
-                    ),
+                    /// LIST ANSWERS FROM DB
+                    else
+                      ListView.builder(
+                        shrinkWrap: true,
+                        physics: const NeverScrollableScrollPhysics(),
+                        itemCount: answers.length,
+                        itemBuilder: (context, index) {
+                          return Padding(
+                            padding: const EdgeInsets.only(bottom: 12),
+                            child: AnswerCard(answer: answers[index]),
+                          );
+                        },
+                      ),
 
                     const SizedBox(height: 80),
                   ],
@@ -230,7 +308,7 @@ class QuestionDetailScreen extends StatelessWidget {
               ),
             ),
 
-            /// INPUT BOX
+            /// ================= INPUT =================
             Container(
               padding:
               const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
@@ -242,29 +320,54 @@ class QuestionDetailScreen extends StatelessWidget {
               ),
               child: Row(
                 children: [
-                  const CircleAvatar(
-                    radius: 18,
-                    backgroundColor: Color(0xFF1C1C1E),
-                    child: Text("U"),
+                  CircleAvatar(
+                    radius: 22,
+                    backgroundColor: const Color(0xFF1C1C1E),
+                    backgroundImage: widget.question.userAvatar != null
+                        ? NetworkImage(widget.question.userAvatar!)
+                        : null,
+                    child: widget.question.userAvatar == null
+                        ? Text(
+                      widget.question.userName.isNotEmpty
+                          ? widget.question.userName[0].toUpperCase()
+                          : "?",
+                    )
+                        : null,
                   ),
                   const SizedBox(width: 10),
                   Expanded(
-                    child: Container(
-                      padding:
-                      const EdgeInsets.symmetric(horizontal: 14),
-                      height: 44,
-                      decoration: BoxDecoration(
-                        color: const Color(0xFF1C1C1E),
-                        borderRadius:
-                        BorderRadius.circular(22),
-                      ),
-                      alignment: Alignment.centerLeft,
-                      child: const Text(
-                        "Write an answer...",
-                        style: TextStyle(color: Colors.grey),
+                    child: TextField(
+                      controller: _answerController,
+                      style: const TextStyle(color: Colors.white),
+                      decoration: const InputDecoration(
+                        hintText: "Write an answer...",
+                        hintStyle: TextStyle(color: Colors.grey),
+                        border: InputBorder.none,
                       ),
                     ),
-                  )
+                  ),
+
+                  IconButton(
+                    icon: const Icon(Icons.send, color: Colors.green),
+                    onPressed: () async {
+                      final user = FirebaseAuth.instance.currentUser;
+                      final answerProvider = context.read<AnswerProvider>();
+
+                      final content = _answerController.text.trim();
+                      if (content.isEmpty || user == null) return;
+
+                      await answerProvider.createAnswer(
+                        postId: widget.question.id,
+                        content: content,
+                        userId: user.uid,
+                        userName: user.displayName ?? "User",
+                        userAvatar: user.photoURL,
+                      );
+
+                      _answerController.clear();
+                    },
+                  ),
+
                 ],
               ),
             )
@@ -274,7 +377,6 @@ class QuestionDetailScreen extends StatelessWidget {
     );
   }
 
-  /// ICON BUTTON
   Widget _iconBtn(IconData icon) {
     return Container(
       width: 40,
