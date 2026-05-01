@@ -5,6 +5,7 @@ import 'package:edushare_app/screens/AI_quiz.dart';
 import 'package:edushare_app/screens/Documents.dart';
 import 'package:edushare_app/screens/Image_scan_screen.dart';
 import 'package:edushare_app/screens/UploadQuestion.dart';
+import 'package:edushare_app/screens/search_result.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -38,6 +39,9 @@ class _HomeScreenState extends State<HomeScreen>
   bool loadingQuestions = true;
 
   final ScrollController _scrollController = ScrollController();
+
+  bool isSearching = false;
+  TextEditingController searchController = TextEditingController();
 
   @override
   void initState() {
@@ -213,67 +217,21 @@ class _HomeScreenState extends State<HomeScreen>
             const SizedBox(height: 20),
 
             /// ================= USER HEADER =================
-            Row(
-              children: [
-                CircleAvatar(
-                  radius: 26,
-                  backgroundColor: const Color(0xFF22C55E),
-                  backgroundImage: (user?.photoURL != null &&
-                      user!.photoURL!.isNotEmpty)
-                      ? NetworkImage(user.photoURL!)
-                      : null,
-                  child: (user?.photoURL == null || user!.photoURL!.isEmpty)
-                      ? Text(
-                    (user?.displayName != null &&
-                        user!.displayName!.isNotEmpty)
-                        ? user.displayName![0].toUpperCase()
-                        : "?",
-                    style: const TextStyle(
-                      color: Colors.black,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  )
-                      : null,
-                ),
-
-                const SizedBox(width: 14),
-
-                Expanded(
-                  child: GestureDetector(
-                    onTapDown: (details) {
-                      _showUserMenu(context, details.globalPosition);
-                    },
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        const Text(
-                          "Good morning",
-                          style: TextStyle(color: Colors.white54),
-                        ),
-                        const SizedBox(height: 4),
-                        Text(
-                          user?.displayName ?? "User",
-                          style: const TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                      ],
-                    ),
+            AnimatedSwitcher(
+              duration: const Duration(milliseconds: 300),
+              transitionBuilder: (child, animation) {
+                return FadeTransition(
+                  opacity: animation,
+                  child: SlideTransition(
+                    position: Tween<Offset>(
+                      begin: const Offset(0, -0.3),
+                      end: Offset.zero,
+                    ).animate(animation),
+                    child: child,
                   ),
-                ),
-
-                IconButton(
-                  icon: const Icon(Icons.notifications_none,
-                      color: Colors.white70),
-                  onPressed: () {},
-                ),
-
-                IconButton(
-                  icon: const Icon(Icons.search, color: Colors.white70),
-                  onPressed: () {},
-                ),
-              ],
+                );
+              },
+              child: isSearching ? _buildSearchBar() : _buildNormalHeader(),
             ),
 
             const SizedBox(height: 20),
@@ -299,10 +257,10 @@ class _HomeScreenState extends State<HomeScreen>
                     fontWeight: FontWeight.bold,
                   ),
                 ),
-                Text(
-                  "See all",
-                  style: TextStyle(color: Colors.green),
-                ),
+                // Text(
+                //   "See all",
+                //   style: TextStyle(color: Colors.green),
+                // ),
               ],
             ),
 
@@ -345,6 +303,139 @@ class _HomeScreenState extends State<HomeScreen>
           ],
         ),
       ),
+    );
+  }
+
+  Widget _buildNormalHeader() {
+    final user = context.watch<AuthProvider>().user;
+
+    return Row(
+      key: const ValueKey("normal"),
+      children: [
+        CircleAvatar(
+          radius: 26,
+          backgroundColor: const Color(0xFF22C55E),
+          backgroundImage: (user?.photoURL != null &&
+              user!.photoURL!.isNotEmpty)
+              ? NetworkImage(user.photoURL!)
+              : null,
+          child: (user?.photoURL == null || user!.photoURL!.isEmpty)
+              ? Text(
+            (user?.displayName != null &&
+                user!.displayName!.isNotEmpty)
+                ? user.displayName![0].toUpperCase()
+                : "?",
+            style: const TextStyle(
+              color: Colors.black,
+              fontWeight: FontWeight.bold,
+            ),
+          )
+              : null,
+        ),
+
+        const SizedBox(width: 14),
+
+        Expanded(
+          child: GestureDetector(
+            onTapDown: (details) {
+              _showUserMenu(context, details.globalPosition);
+            },
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text("Good morning",
+                    style: TextStyle(color: Colors.white54)),
+                const SizedBox(height: 4),
+                Text(
+                  user?.displayName ?? "User",
+                  style: const TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+
+        IconButton(
+          icon: const Icon(Icons.notifications_none,
+              color: Colors.white70),
+          onPressed: () {},
+        ),
+
+        IconButton(
+          icon: const Icon(Icons.search, color: Colors.white70),
+          onPressed: () {
+            setState(() {
+              isSearching = true;
+            });
+          },
+        ),
+      ],
+    );
+  }
+
+  Widget _buildSearchBar() {
+    return Row(
+      key: const ValueKey("search"),
+      children: [
+        Expanded(
+          child: Container(
+            height: 50,
+            decoration: BoxDecoration(
+              color: Colors.white.withOpacity(0.1),
+              borderRadius: BorderRadius.circular(30),
+            ),
+            child: TextField(
+              controller: searchController,
+              autofocus: true,
+              textInputAction: TextInputAction.search,
+              style: const TextStyle(color: Colors.white),
+              decoration: InputDecoration(
+                hintText: "Search questions...",
+                hintStyle: const TextStyle(color: Colors.white54),
+                border: InputBorder.none,
+                prefixIcon: const Icon(Icons.search, color: Colors.white70),
+                suffixIcon: IconButton(
+                  icon: const Icon(Icons.close, color: Colors.white70),
+                  onPressed: () => searchController.clear(),
+                ),
+              ),
+
+              onSubmitted: (value) {
+                final keyword = value.trim();
+                if (keyword.isEmpty) return;
+
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (_) => SearchScreen(keyword: keyword),
+                  ),
+                );
+              },
+            ),
+          ),
+        ),
+
+        const SizedBox(width: 10),
+
+        GestureDetector(
+          onTap: () {
+            setState(() {
+              isSearching = false;
+              searchController.clear();
+            });
+          },
+          child: const Text(
+            "Cancel",
+            style: TextStyle(
+              color: Colors.green,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+        ),
+      ],
     );
   }
 
@@ -438,6 +529,9 @@ class _HomeScreenState extends State<HomeScreen>
                 TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
             Text("See all", style: TextStyle(color: Colors.green)),
           ],
+
+
+
         ),
         const SizedBox(height: 16),
         GridView.count(

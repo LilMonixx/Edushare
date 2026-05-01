@@ -1,5 +1,8 @@
+from unittest import result
+
 from fastapi import APIRouter
 from config.firebase_config import db
+from config.algolia_service import search_posts
 
 router = APIRouter()
 
@@ -33,3 +36,17 @@ def get_posts(limit: int = 10, lastId: str = None):
         })
 
     return {"data": posts}
+
+@router.get("/posts/search")
+def search_posts_api(q: str, limit: int = 10, page: int = 0, subject: str = None):
+
+    result = search_posts(q, page, limit, subject)
+
+    print(result)
+
+    nb_pages = result.get("nbPages", 0)
+
+    return {
+        "data": result.get("hits", []),
+        "hasMore": page + 1 < nb_pages
+    }

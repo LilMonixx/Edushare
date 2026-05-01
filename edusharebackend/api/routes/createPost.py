@@ -2,6 +2,7 @@ from fastapi import APIRouter, HTTPException
 from firebase_admin import auth
 from google.cloud.firestore import SERVER_TIMESTAMP
 import uuid
+from config.algolia_service import save_post
 
 from config.firebase_config import db
 
@@ -58,7 +59,16 @@ def create_post(data: dict):
         "updatedAt": SERVER_TIMESTAMP,
     }
 
-    db.collection("posts").document(post_id).set(post_data)
+    doc_ref = db.collection("posts").document(post_id)
+    doc_ref.set(post_data)
+
+    saved_data = doc_ref.get().to_dict()
+
+    save_post(post_id, saved_data)
+
+    # db.collection("posts").document(post_id).set(post_data)
+
+    # save_post(post_id, post_data)
 
     return {
         "message": "Post created successfully",
