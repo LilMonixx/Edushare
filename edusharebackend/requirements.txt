@@ -5,3 +5,5 @@ firebase-admin==7.4.0
 pydantic-settings # Quản lý cấu hình .env
 python-multipart  # Để nhận file ảnh scan từ mobile
 PyJWT==2.12.1
+algoliasearch==4.40.0
+python-dotenv==1.2.2
