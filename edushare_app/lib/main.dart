@@ -1,5 +1,6 @@
 import 'package:edushare_app/providers/AnswerProvider.dart';
 import 'package:edushare_app/providers/AuthGate.dart';
+import 'package:edushare_app/providers/LikeProvider.dart';
 import 'package:edushare_app/providers/post_provider.dart';
 import 'package:edushare_app/providers/question_provider.dart';
 import 'package:flutter/material.dart';
@@ -44,6 +45,8 @@ class EduShareApp extends StatelessWidget {
         ChangeNotifierProvider(
           create: (_) => AnswerProvider(),
         ),
+
+        ChangeNotifierProvider(create: (_) => LikeProvider()),
       ],
       child: MaterialApp(
         title: 'EduShare',

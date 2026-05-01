@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../models/Question.dart';
 import '../providers/AnswerProvider.dart';
+import '../providers/LikeProvider.dart';
 import '../widgets/answer_card.dart';
 
 class QuestionDetailScreen extends StatefulWidget {
@@ -21,8 +22,8 @@ class _QuestionDetailScreenState extends State<QuestionDetailScreen> {
 
   final TextEditingController _answerController = TextEditingController();
 
-  bool isLiked = false;
-  int likeCount = 0;
+
+
 
   @override
   void initState() {
@@ -30,6 +31,10 @@ class _QuestionDetailScreenState extends State<QuestionDetailScreen> {
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
       context.read<AnswerProvider>().loadAnswers(widget.question.id);
+    });
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      context.read<LikeProvider>().init(widget.question.id);
     });
   }
 
@@ -60,6 +65,7 @@ class _QuestionDetailScreenState extends State<QuestionDetailScreen> {
     final answerProvider = context.watch<AnswerProvider>();
     final answers = answerProvider.answers;
     final loading = answerProvider.loading;
+    final likeProvider = context.watch<LikeProvider>();
 
     return Scaffold(
       backgroundColor: const Color(0xFF0B0B0B),
@@ -204,32 +210,50 @@ class _QuestionDetailScreenState extends State<QuestionDetailScreen> {
                           /// LIKE
                           GestureDetector(
                             onTap: () {
-                              setState(() {
-                                isLiked = !isLiked;
-                                likeCount += isLiked ? 1 : -1;
-                              });
+                              context.read<LikeProvider>().toggleLike(widget.question.id);
                             },
                             child: AnimatedContainer(
                               duration: const Duration(milliseconds: 200),
                               padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                               decoration: BoxDecoration(
-                                color: isLiked
+                                color: likeProvider.isLiked
                                     ? Colors.red.withOpacity(0.15)
                                     : Colors.transparent,
                                 borderRadius: BorderRadius.circular(20),
                               ),
                               child: Row(
                                 children: [
-                                  Icon(
-                                    isLiked ? Icons.favorite : Icons.favorite_border,
-                                    color: isLiked ? Colors.red : Colors.white70,
-                                    size: 26,
+                                  AnimatedSwitcher(
+                                    duration: const Duration(milliseconds: 250),
+                                    transitionBuilder: (child, anim) {
+                                      return ScaleTransition(
+                                        scale: Tween(begin: 0.7, end: 1.2).animate(
+                                          CurvedAnimation(
+                                            parent: anim,
+                                            curve: Curves.elasticOut,
+                                          ),
+                                        ),
+                                        child: child,
+                                      );
+                                    },
+                                    child: Icon(
+                                      likeProvider.isLiked
+                                          ? Icons.favorite
+                                          : Icons.favorite_border,
+                                      key: ValueKey(likeProvider.isLiked),
+                                      color: likeProvider.isLiked
+                                          ? Colors.red
+                                          : Colors.white70,
+                                      size: 26,
+                                    ),
                                   ),
                                   const SizedBox(width: 6),
                                   Text(
-                                    "$likeCount",
+                                    "${likeProvider.likeCount}",
                                     style: TextStyle(
-                                      color: isLiked ? Colors.red : Colors.white70,
+                                      color: likeProvider.isLiked
+                                          ? Colors.red
+                                          : Colors.white70,
                                       fontSize: 16,
                                       fontWeight: FontWeight.w500,
                                     ),

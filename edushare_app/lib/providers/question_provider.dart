@@ -54,4 +54,64 @@ class QuestionProvider extends ChangeNotifier {
     loading = false;
     notifyListeners();
   }
+
+
+  List<Question> searchResults = [];
+  bool searching = false;
+  bool hasMoreSearch = true;
+
+  String? searchLastId;
+  String currentKeyword = "";
+
+  String? selectedSubject;
+
+
+  Future<void> search(String keyword, {String? subject}) async {
+    currentKeyword = keyword.trim();
+    selectedSubject = subject;
+
+    searchResults.clear();
+    searchLastId = null;
+    hasMoreSearch = true;
+
+    notifyListeners();
+    await loadMoreSearch();
+  }
+
+  Future<void> loadMoreSearch() async {
+    if (searching || !hasMoreSearch) return;
+
+    searching = true;
+    notifyListeners();
+
+    try {
+      final data = await _repo.searchQuestions(
+        keyword: currentKeyword,
+        subject: selectedSubject, // 👈 THÊM CÁI NÀY
+        limit: 10,
+        lastId: searchLastId,
+      );
+
+      if (data.isEmpty) {
+        hasMoreSearch = false;
+      } else {
+        final newItems = data.map((e) {
+          return Question.fromMap(e, e["postId"]);
+        }).toList();
+
+        if (newItems.isNotEmpty) {
+          searchResults.addAll(newItems);
+          searchLastId = newItems.last.id;
+        } else {
+          hasMoreSearch = false;
+        }
+      }
+    } catch (e) {
+      print("Search error: $e");
+    }
+
+    searching = false;
+    notifyListeners();
+  }
+
 }
