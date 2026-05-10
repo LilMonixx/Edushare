@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:file_picker/file_picker.dart';
 
 import '../widgets/SourceCard.dart';
+import 'DeviceUploadScreen.dart';
 import 'SelectDoc.dart';
 
 
@@ -33,8 +34,22 @@ class _QuizGeneratorScreenState extends State<QuizGeneratorScreen> {
     });
 
     if (index == 0) {
-      /// From Device
-      await pickFile();
+      // From Device → mở màn hình upload mới
+      Navigator.push(
+        context,
+        PageRouteBuilder(
+          transitionDuration: const Duration(milliseconds: 300),
+          pageBuilder: (_, __, ___) => const DeviceUploadScreen(),
+          transitionsBuilder: (_, animation, __, child) {
+            final tween = Tween(begin: const Offset(1, 0), end: Offset.zero)
+                .chain(CurveTween(curve: Curves.easeInOut));
+            return SlideTransition(
+              position: animation.drive(tween),
+              child: child,
+            );
+          },
+        ),
+      );
     } else {
       /// From Documents 👇
       Navigator.push(

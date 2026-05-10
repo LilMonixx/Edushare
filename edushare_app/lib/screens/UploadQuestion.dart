@@ -155,6 +155,8 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
                       final success = await postProvider.createPost(
                         content: _controller.text.trim(),
                         subject: selectedSubject,
+                        images: images,
+                        files: files,
                       );
 
                       if (success && context.mounted) {

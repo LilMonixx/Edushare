@@ -1,6 +1,10 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 
 import '../models/DocFile.dart';
+import '../models/File_model.dart';
+import '../services/FileService.dart';
+import '../utils/open_attachment.dart';
 import '../widgets/doc_item.dart';
 import '../widgets/media_item.dart';
 
@@ -13,65 +17,76 @@ class MyDocumentsScreen extends StatefulWidget {
 }
 
 class _MyDocumentsScreenState extends State<MyDocumentsScreen> {
-  int selectedTab = 1; // 0 = Files, 1 = Media
+  List<AttachmentModel> attachments = [];
 
-  /// DATA
-  List<DocFile> docs = [
-    DocFile(
-      id: "1",
-      title: "Report.pdf",
-      size: "2MB",
-      time: "10:30",
-      path: "/storage/docs/report.pdf",
-    ),
-    DocFile(
-      id: "2",
-      title: "Notes.txt",
-      size: "500KB",
-      time: "Yesterday",
-      path: "/storage/docs/notes.txt",
-    ),
-  ];
+  List<AttachmentModel> filtered = [];
 
-  final List<MediaFile> medias = [
-    MediaFile(
-        title: "Lesson Video",
-        size: "45MB",
-        time: "1h ago",
-        isVideo: true,
-        duration: "12:34"),
-    MediaFile(
-        title: "Image 1",
-        size: "3MB",
-        time: "2h ago",
-        isVideo: false),
-    MediaFile(
-        title: "Clip",
-        size: "20MB",
-        time: "Yesterday",
-        isVideo: true,
-        duration: "05:12"),
-    MediaFile(
-        title: "Photo",
-        size: "2MB",
-        time: "3 days ago",
-        isVideo: false),
-    MediaFile(
-        title: "Video 2",
-        size: "60MB",
-        time: "Last week",
-        isVideo: true,
-        duration: "09:20"),
-    MediaFile(
-        title: "Image 2",
-        size: "4MB",
-        time: "Today",
-        isVideo: false),
-  ];
+  bool loading = true;
+
+  String search = "";
+
+  int selectedTab = 0; // 0 = Files, 1 = Media
+
+
+
+  @override
+  void initState() {
+    super.initState();
+
+    loadData();
+  }
+
+  Future<void> loadData() async {
+
+    final user = FirebaseAuth.instance.currentUser;
+
+    if (user == null) return;
+
+    final data = await AttachmentService
+        .getUserAttachments(user.uid);
+
+    setState(() {
+
+      attachments = data;
+
+      filtered = data;
+
+      loading = false;
+    });
+  }
+
+  void onSearch(String value) {
+
+    search = value;
+
+    setState(() {
+
+      filtered = attachments.where((e) {
+
+        return e.fileName
+            .toLowerCase()
+            .contains(value.toLowerCase());
+
+      }).toList();
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
     final isFiles = selectedTab == 0;
+
+    final fileItems = filtered.where((e) {
+
+      return e.fileType == "document";
+
+    }).toList();
+
+    final mediaItems = filtered.where((e) {
+
+      return e.fileType == "image" ||
+          e.fileType == "video";
+
+    }).toList();
 
     return Scaffold(
       backgroundColor: const Color(0xFF0D0D0D),
@@ -117,14 +132,27 @@ class _MyDocumentsScreenState extends State<MyDocumentsScreen> {
                         borderRadius: BorderRadius.circular(14),
                       ),
                       padding: const EdgeInsets.symmetric(horizontal: 12),
-                      child: const Row(
+
+                      child: Row(
                         children: [
-                          Icon(Icons.search, color: Colors.grey),
-                          SizedBox(width: 8),
-                          Text(
-                            "Search documents...",
-                            style: TextStyle(color: Colors.grey),
-                          )
+
+                          const Icon(Icons.search, color: Colors.grey),
+
+                          const SizedBox(width: 8),
+
+                          Expanded(
+                            child: TextField(
+                              onChanged: onSearch,
+
+                              style: const TextStyle(color: Colors.white),
+
+                              decoration: const InputDecoration(
+                                hintText: "Search documents...",
+                                hintStyle: TextStyle(color: Colors.grey),
+                                border: InputBorder.none,
+                              ),
+                            ),
+                          ),
                         ],
                       ),
                     ),
@@ -166,7 +194,7 @@ class _MyDocumentsScreenState extends State<MyDocumentsScreen> {
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Text(
-                    "${isFiles ? docs.length : medias.length} items",
+                   "${isFiles ? fileItems.length : mediaItems.length} items",
                     style: const TextStyle(color: Colors.grey),
                   ),
                   const Text(
@@ -185,15 +213,82 @@ class _MyDocumentsScreenState extends State<MyDocumentsScreen> {
                   child: isFiles
                       ? ListView.separated(
                     key: const ValueKey("list"),
-                    itemCount: docs.length,
-                    separatorBuilder: (_, __) => const SizedBox(height: 10),
+
+                    itemCount: fileItems.length,
+
+                    separatorBuilder: (_, __) =>
+                    const SizedBox(height: 10),
+
                     itemBuilder: (context, index) {
-                      return DocItem(doc: docs[index]);
+
+                      final item = fileItems[index];
+
+                      return GestureDetector(
+
+                        onTap: () {
+
+                          openAttachment(
+                            context: context,
+                            fileType: item.fileType,
+                            fileUrl: item.fileUrl,
+                            fileName: item.fileName,
+                          );
+                        },
+
+                        child: Container(
+
+                          padding: const EdgeInsets.all(14),
+
+                          decoration: BoxDecoration(
+                            color: const Color(0xFF1C1C1E),
+                            borderRadius: BorderRadius.circular(16),
+                          ),
+
+                          child: Row(
+                            children: [
+
+                              const Icon(
+                                Icons.picture_as_pdf,
+                                color: Colors.red,
+                              ),
+
+                              const SizedBox(width: 12),
+
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment:
+                                  CrossAxisAlignment.start,
+
+                                  children: [
+
+                                    Text(
+                                      item.fileName,
+                                      style: const TextStyle(
+                                        fontWeight: FontWeight.w600,
+                                      ),
+                                    ),
+
+                                    const SizedBox(height: 4),
+
+                                    Text(
+                                      "${item.fileSize} bytes",
+                                      style: const TextStyle(
+                                        color: Colors.grey,
+                                        fontSize: 12,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      );
                     },
                   )
                       : GridView.builder(
                     key: const ValueKey("grid"),
-                    itemCount: medias.length,
+                    itemCount: mediaItems.length,
                     gridDelegate:
                     const SliverGridDelegateWithFixedCrossAxisCount(
                       crossAxisCount: 2,
@@ -202,7 +297,46 @@ class _MyDocumentsScreenState extends State<MyDocumentsScreen> {
                       childAspectRatio: 0.95,
                     ),
                     itemBuilder: (context, index) {
-                      return MediaItem(media: medias[index]);
+                      final item = mediaItems[index];
+
+                      return GestureDetector(
+
+                        onTap: () {
+
+                          openAttachment(
+                            context: context,
+                            fileType: item.fileType,
+                            fileUrl: item.fileUrl,
+                            fileName: item.fileName,
+                          );
+                        },
+
+                        child: ClipRRect(
+
+                          borderRadius: BorderRadius.circular(18),
+
+                          child: Stack(
+                            fit: StackFit.expand,
+
+                            children: [
+
+                              Image.network(
+                                item.fileUrl,
+                                fit: BoxFit.cover,
+                              ),
+
+                              if (item.fileType == "video")
+                                const Center(
+                                  child: Icon(
+                                    Icons.play_circle_fill,
+                                    size: 50,
+                                    color: Colors.white,
+                                  ),
+                                ),
+                            ],
+                          ),
+                        ),
+                      );
                     },
                   ),
                 ),

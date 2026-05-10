@@ -1,20 +1,40 @@
-import 'dart:io';
-import 'package:http/http.dart' as http;
-import 'package:path_provider/path_provider.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 
-class FileService {
-  Future<String?> downloadAvatar(String url, String userId) async {
-    final res = await http.get(Uri.parse(url));
+import '../models/File_model.dart';
 
-    if (res.statusCode == 200) {
-      final dir = await getApplicationDocumentsDirectory();
-      final file = File("${dir.path}/avatar_$userId.png");
 
-      await file.writeAsBytes(res.bodyBytes);
 
-      return file.path;
-    }
+class AttachmentService {
 
-    return null;
+  static final _db = FirebaseFirestore.instance;
+
+  static Future<List<AttachmentModel>> getUserAttachments(
+      String userId,
+      ) async {
+
+    final postSnap = await _db
+        .collection("posts")
+        .where("userId", isEqualTo: userId)
+        .get();
+
+    List<String> postIds = postSnap.docs
+        .map((e) => e.id)
+        .toList();
+
+    if (postIds.isEmpty) return [];
+
+    final attachmentSnap = await _db
+        .collection("attachments")
+        .where("postId", whereIn: postIds)
+        .get();
+
+    return attachmentSnap.docs.map((e) {
+
+      return AttachmentModel.fromMap({
+        ...e.data(),
+        "attachmentId": e.id,
+      });
+
+    }).toList();
   }
 }

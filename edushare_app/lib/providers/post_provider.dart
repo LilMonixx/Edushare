@@ -1,7 +1,9 @@
+import 'package:camera/camera.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 
 import '../repository/post_repository.dart';
+import '../services/upload_file.dart';
 
 class PostProvider extends ChangeNotifier {
   final PostRepository _repo = PostRepository();
@@ -11,29 +13,28 @@ class PostProvider extends ChangeNotifier {
   Future<bool> createPost({
     required String content,
     required String subject,
+    required List<XFile> images,
+    required List<XFile> files,
   }) async {
     try {
       loading = true;
       notifyListeners();
 
       final user = FirebaseAuth.instance.currentUser;
-      print("USER: $user");
-
       if (user == null) return false;
 
-      // 🔥 FIX 1: force refresh + xử lý null
       final idToken = await user.getIdToken(true);
+      if (idToken == null) return false;
 
-      if (idToken == null) {
-        print("Token is null");
-        return false;
-      } else
-        print("istoken: $idToken" );
+      /// 🔥 UPLOAD FILES TRƯỚC
+      final attachments = await uploadAttachments(images, files);
 
+      /// 🔥 SEND TO BACKEND
       await _repo.createPost(
         idToken: idToken,
         content: content,
         subject: subject,
+        attachments: attachments,
       );
 
       return true;

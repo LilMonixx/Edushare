@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../models/Question.dart';
+import 'pdf_thumnail.dart';
 
 class QuestionCard extends StatelessWidget {
   final Question question;
@@ -19,6 +20,107 @@ class QuestionCard extends StatelessWidget {
     if (diff < 60) return "${diff}m ago";
     if (diff < 1440) return "${(diff / 60).round()}h ago";
     return "${time.day}/${time.month}/${time.year}";
+  }
+
+  Widget _buildAttachments() {
+
+    if (question.attachments.isEmpty) {
+      return const SizedBox();
+    }
+
+    return SizedBox(
+      height: 100,
+      child: ListView.builder(
+        scrollDirection: Axis.horizontal,
+        itemCount: question.attachments.length,
+        itemBuilder: (context, index) {
+
+          final att = question.attachments[index];
+
+          /// ================= IMAGE =================
+          if (att.fileType == "image") {
+
+            return Container(
+              margin: const EdgeInsets.only(right: 10),
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(16),
+                child: Image.network(
+                  att.fileUrl,
+                  width: 110,
+                  height: 100,
+                    fit: BoxFit.contain,
+                ),
+              ),
+            );
+          }
+
+          /// ================= VIDEO =================
+          if (att.fileType == "video") {
+
+            return Container(
+              width: 110,
+              height: 100,
+              margin: const EdgeInsets.only(right: 10),
+              decoration: BoxDecoration(
+                color: Colors.black,
+                borderRadius: BorderRadius.circular(16),
+              ),
+              child: const Center(
+                child: Icon(
+                  Icons.play_circle_fill,
+                  color: Colors.white,
+                  size: 42,
+                ),
+              ),
+            );
+          }
+
+          /// ================= DOCUMENT =================
+
+          return Container(
+            width: 140,
+            height: 200,
+            margin: const EdgeInsets.only(right: 10),
+            decoration: BoxDecoration(
+              color: const Color(0xFF111827),
+              borderRadius: BorderRadius.circular(18),
+              border: Border.all(color: Colors.white10),
+            ),
+            clipBehavior: Clip.antiAlias,
+
+            child: Column(
+              children: [
+
+                /// PDF PREVIEW
+                Expanded(
+                  child: PdfThumbnail(
+                    url: att.fileUrl,
+                  ),
+                ),
+
+                /// FILE NAME
+                Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.all(10),
+                  color: Colors.black87,
+
+                  child: Text(
+                    att.fileName,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontSize: 12,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          );
+        },
+      ),
+    );
   }
 
   @override
@@ -88,6 +190,12 @@ class QuestionCard extends StatelessWidget {
                 height: 1.4,
               ),
             ),
+
+            const SizedBox(height: 12),
+            if (question.attachments.isNotEmpty) ...[
+              //const SizedBox(height: 14),
+              _buildAttachments(),
+            ],
 
             const SizedBox(height: 12),
 

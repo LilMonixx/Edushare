@@ -4,7 +4,9 @@ import 'package:provider/provider.dart';
 import '../models/Question.dart';
 import '../providers/AnswerProvider.dart';
 import '../providers/LikeProvider.dart';
+import '../utils/open_attachment.dart';
 import '../widgets/answer_card.dart';
+import '../widgets/pdf_thumnail.dart';
 
 class QuestionDetailScreen extends StatefulWidget {
   final Question question;
@@ -162,6 +164,151 @@ class _QuestionDetailScreenState extends State<QuestionDetailScreen> {
                         height: 1.4,
                       ),
                     ),
+                    const SizedBox(height: 16),
+
+                    if (widget.question.attachments.isNotEmpty)
+                      SizedBox(
+                        height: widget.question.attachments.any(
+                              (e) => e.fileType == "document",
+                        )
+                            ? 220
+                            : 110,
+
+                        child: ListView.builder(
+                          scrollDirection: Axis.horizontal,
+                          itemCount: widget.question.attachments.length,
+
+                          itemBuilder: (context, index) {
+
+                            final att = widget.question.attachments[index];
+
+                            /// ================= IMAGE =================
+                            if (att.fileType == "image") {
+
+                              return GestureDetector(
+                                onTap: () {
+
+                                  print("CLICK IMAGE");
+
+                                  openAttachment(
+                                    context: context,
+                                    fileType: att.fileType,
+                                    fileUrl: att.fileUrl,
+                                    fileName: att.fileName,
+                                  );
+                                },
+
+                                child: Container(
+                                  width: 180,
+                                  margin: const EdgeInsets.only(right: 12),
+
+                                  child: ClipRRect(
+                                    borderRadius: BorderRadius.circular(18),
+
+                                    child: Image.network(
+                                      att.fileUrl,
+                                      fit: BoxFit.contain,
+                                    ),
+                                  ),
+                                ),
+                              );
+                            }
+
+                            /// ================= VIDEO =================
+                            if (att.fileType == "video") {
+
+                              return GestureDetector(
+                                onTap: () {
+
+                                  print("CLICK VIDEO");
+
+                                  openAttachment(
+                                    context: context,
+                                    fileType: att.fileType,
+                                    fileUrl: att.fileUrl,
+                                    fileName: att.fileName,
+                                  );
+                                },
+
+                                child: Container(
+                                  width: 180,
+                                  margin: const EdgeInsets.only(right: 12),
+
+                                  decoration: BoxDecoration(
+                                    color: Colors.black,
+                                    borderRadius: BorderRadius.circular(18),
+                                  ),
+
+                                  child: const Center(
+                                    child: Icon(
+                                      Icons.play_circle_fill,
+                                      color: Colors.white,
+                                      size: 50,
+                                    ),
+                                  ),
+                                ),
+                              );
+                            }
+
+                            /// ================= DOCUMENT =================
+                            return GestureDetector(
+                              onTap: () {
+
+                                print("CLICK DOCUMENT");
+
+                                openAttachment(
+                                  context: context,
+                                  fileType: att.fileType,
+                                  fileUrl: att.fileUrl,
+                                  fileName: att.fileName,
+                                );
+                              },
+
+                              child: Container(
+                                width: 150,
+                                margin: const EdgeInsets.only(right: 12),
+
+                                decoration: BoxDecoration(
+                                  color: const Color(0xFF111827),
+                                  borderRadius: BorderRadius.circular(18),
+                                  border: Border.all(color: Colors.white10),
+                                ),
+
+                                clipBehavior: Clip.antiAlias,
+
+                                child: Column(
+                                  children: [
+
+                                    Expanded(
+                                      child: PdfThumbnail(
+                                        url: att.fileUrl,
+                                      ),
+                                    ),
+
+                                    Container(
+                                      width: double.infinity,
+                                      padding: const EdgeInsets.all(10),
+                                      color: Colors.black87,
+
+                                      child: Text(
+                                        att.fileName,
+                                        maxLines: 1,
+                                        overflow: TextOverflow.ellipsis,
+
+                                        style: const TextStyle(
+                                          color: Colors.white,
+                                          fontSize: 12,
+                                          fontWeight: FontWeight.w600,
+                                        ),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            );
+                          },
+                        ),
+                      ),
 
                     const SizedBox(height: 12),
 
