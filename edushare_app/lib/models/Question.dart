@@ -1,3 +1,7 @@
+import 'dart:convert';
+
+import 'attachment.dart';
+
 class Question {
   final String id;
   final String userId;
@@ -10,6 +14,7 @@ class Question {
 
   final DateTime? createdAt;
   final DateTime? updatedAt;
+  final List<Attachment> attachments;
 
   Question({
     required this.id,
@@ -21,6 +26,7 @@ class Question {
     required this.status,
     this.createdAt,
     this.updatedAt,
+    required this.attachments,
   });
 
   factory Question.fromMap(Map<String, dynamic> map, String docId) {
@@ -45,6 +51,9 @@ class Question {
       updatedAt: map["updatedAt"] != null
           ? DateTime.tryParse(map["updatedAt"].toString())
           : null,
+      attachments: (map["attachments"] as List<dynamic>?)
+          ?.map((e) => Attachment.fromJson(e))
+          .toList() ?? [],
     );
   }
 }

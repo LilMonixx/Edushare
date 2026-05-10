@@ -16,6 +16,7 @@ def get_posts(limit: int = 10, lastId: str = None):
 
     if lastId:
         last_doc = db.collection("posts").document(lastId).get()
+
         if last_doc.exists:
             query = query.start_after(last_doc)
 
@@ -24,18 +25,42 @@ def get_posts(limit: int = 10, lastId: str = None):
     posts = []
 
     for doc in docs:
+
         data = doc.to_dict()
+
+        # ================= ATTACHMENTS =================
+        attachments_docs = db.collection("attachments") \
+            .where("postId", "==", doc.id) \
+            .stream()
+
+        attachments = []
+
+        for att in attachments_docs:
+
+            att_data = att.to_dict()
+
+            attachments.append({
+                "attachmentId": att_data.get("attachmentId"),
+                "file_url": att_data.get("file_url"),
+                "file_type": att_data.get("file_type"),
+                "file_name": att_data.get("file_name"),
+                "file_size": att_data.get("file_size"),
+            })
 
         posts.append({
             "postId": doc.id,
+
             **data,
 
-            # optional: ensure fallback an toàn
+            "attachments": attachments,
+
             "authorName": data.get("authorName", "Unknown"),
-            "authorAvatar": data.get("authorAvatar", None),
+            "authorAvatar": data.get("authorAvatar"),
         })
 
-    return {"data": posts}
+    return {
+        "data": posts
+    }
 
 @router.get("/posts/search")
 def search_posts_api(q: str, limit: int = 10, page: int = 0, subject: str = None):

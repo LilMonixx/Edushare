@@ -1,7 +1,11 @@
 import 'dart:ui';
 import 'package:camera/camera.dart';
+import 'package:edushare_app/screens/search_result.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
+import 'dart:io';
+import 'package:google_mlkit_text_recognition/google_mlkit_text_recognition.dart';
+
 
 class AIScanScreen extends StatefulWidget {
   const AIScanScreen({super.key});
@@ -15,7 +19,6 @@ class _AIScanScreenState extends State<AIScanScreen> {
   List<CameraDescription>? cameras;
 
 
-
   bool isFlashOn = false;
   bool isRearCamera = true;
   bool isLoading = true;
@@ -24,6 +27,18 @@ class _AIScanScreenState extends State<AIScanScreen> {
   void initState() {
     super.initState();
     initCamera();
+  }
+
+  Future<String> scanImage(File file) async {
+    final inputImage = InputImage.fromFile(file);
+    final textRecognizer = TextRecognizer();
+
+    final RecognizedText result =
+    await textRecognizer.processImage(inputImage);
+
+    textRecognizer.close();
+
+    return result.text;
   }
 
   // ================= INIT CAMERA =================
@@ -99,26 +114,60 @@ class _AIScanScreenState extends State<AIScanScreen> {
     });
   }
 
-  // ================= TAKE PHOTO =================
   Future<void> takePicture() async {
     if (controller == null || !controller!.value.isInitialized) return;
 
     final file = await controller!.takePicture();
-    debugPrint("Captured: ${file.path}");
 
-    // TODO: gửi AI xử lý
+    setState(() => isLoading = true);
+
+    final text = await scanImage(File(file.path));
+
+    setState(() => isLoading = false);
+
+    if (text.trim().isEmpty) return;
+
+    // Navigator.push(
+    //   context,
+    //   MaterialPageRoute(
+    //     builder: (_) => SearchScreen(keyword: text),
+    //   ),
+    // );
+    showScanResult(text);
   }
 
-  // ================= PICK IMAGE =================
   Future<void> pickImage() async {
     final picker = ImagePicker();
     final img = await picker.pickImage(source: ImageSource.gallery);
 
-    if (img != null) {
-      debugPrint("Picked: ${img.path}");
+    if (img == null) return;
 
-      // TODO: gửi AI xử lý
+    setState(() => isLoading = true);
+
+    final file = File(img.path);
+
+    final text = await scanImage(file);
+    print("OCR RAW: [$text]");
+    print("LENGTH: ${text.length}");
+    print("CODES: ${text.runes.toList()}");
+
+    setState(() => isLoading = false);
+
+    if (text.trim().isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Không nhận diện được chữ")),
+      );
+      return;
     }
+
+    // 👉 sang search screen luôn
+    // Navigator.push(
+    //   context,
+    //   MaterialPageRoute(
+    //     builder: (_) => SearchScreen(keyword: text),
+    //   ),
+    // );
+    showScanResult(text);
   }
 
   @override
@@ -276,6 +325,50 @@ class _AIScanScreenState extends State<AIScanScreen> {
           ),
         ],
       ),
+    );
+  }
+
+  void showScanResult(String text) {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: const Color(0xFF1A1A1A),
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (_) {
+        return Padding(
+          padding: const EdgeInsets.all(16),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const Text(
+                "Detected Text",
+                style: TextStyle(color: Colors.white, fontSize: 18),
+              ),
+              const SizedBox(height: 10),
+              Text(text, style: const TextStyle(color: Colors.grey)),
+
+              const SizedBox(height: 20),
+
+              ElevatedButton(
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.green,
+                ),
+                onPressed: () {
+                  Navigator.pop(context);
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) => SearchScreen(keyword: text),
+                    ),
+                  );
+                },
+                child: const Text("Search Posts"),
+              )
+            ],
+          ),
+        );
+      },
     );
   }
 

@@ -14,6 +14,7 @@ def create_post(data: dict):
     id_token = data.get("id_token")
     content = data.get("content")
     subject = data.get("subject")
+    attachments = data.get("attachments", [])
 
   
     if not id_token:
@@ -24,9 +25,15 @@ def create_post(data: dict):
 
     
     try:
-        decoded = auth.verify_id_token(id_token)
-    except Exception:
-        raise HTTPException(status_code=401, detail="Invalid token")
+      print("ID TOKEN RECEIVED:", id_token)
+
+      decoded = auth.verify_id_token(id_token)
+
+      print("UID:", decoded["uid"])
+
+    except Exception as e:
+       print("🔥 FIREBASE VERIFY FAILED:", str(e))
+       raise HTTPException(status_code=401, detail="Invalid Firebase token")
 
     uid = decoded["uid"]
 
@@ -65,6 +72,22 @@ def create_post(data: dict):
     saved_data = doc_ref.get().to_dict()
 
     save_post(post_id, saved_data)
+
+    for att in attachments:
+
+      attachment_id = str(uuid.uuid4())
+
+      attachment_data = {
+        "attachmentId": attachment_id,
+        "postId": post_id,
+        "file_url": att.get("file_url"),
+        "file_type": att.get("file_type"),
+        "file_name": att.get("file_name"),
+        "file_size": att.get("file_size"),
+        "createdAt": SERVER_TIMESTAMP,
+       }
+
+      db.collection("attachments").document(attachment_id).set(attachment_data)
 
     # db.collection("posts").document(post_id).set(post_data)
 

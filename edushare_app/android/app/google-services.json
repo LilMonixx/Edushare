@@ -14,6 +14,14 @@
       },
       "oauth_client": [
         {
+          "client_id": "1022014639282-1su1as99a7a4cqr9sqccbfbcui2kentf.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.example.edushare_app",
+            "certificate_hash": "3802789650ce9e238d3821fb9a4c2a8ddbf274d3"
+          }
+        },
+        {
           "client_id": "1022014639282-2m8pcq6ajjbegn2565qbkht0qamv7805.apps.googleusercontent.com",
           "client_type": 1,
           "android_info": {

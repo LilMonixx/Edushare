@@ -8,6 +8,7 @@ from api.routes import getPosts
 from api.routes import createAnswer
 from api.routes import getAnswer
 from api.routes import likePost
+from api.routes import cloudinary_routes
 
 
 app = FastAPI()
@@ -18,6 +19,8 @@ app.include_router(getPosts.router)
 app.include_router(createAnswer.router)
 app.include_router(getAnswer.router)
 app.include_router(likePost.router)
+app.include_router(cloudinary_routes.router)
+
 
 
 #uvicorn app.main:app --reload
