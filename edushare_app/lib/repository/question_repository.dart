@@ -31,7 +31,7 @@ class QuestionRepository {
       query: {
         "q": keyword,
         "limit": limit.toString(),
-        if (subject != null) "subject": subject, // 👈 THÊM
+        "subject": ?subject, // 👈 THÊM
         if (lastId != null && lastId.isNotEmpty)
           "lastId": lastId,
       },

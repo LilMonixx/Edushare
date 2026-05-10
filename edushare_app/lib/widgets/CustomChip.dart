@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 class CustomChip extends StatelessWidget {
   final String label;
 
-  const CustomChip({required this.label});
+  const CustomChip({super.key, required this.label});
 
   @override
   Widget build(BuildContext context) {
@@ -13,10 +13,7 @@ class CustomChip extends StatelessWidget {
         color: Colors.white10,
         borderRadius: BorderRadius.circular(20),
       ),
-      child: Text(
-        label,
-        style: const TextStyle(fontSize: 14),
-      ),
+      child: Text(label, style: const TextStyle(fontSize: 14)),
     );
   }
 }
