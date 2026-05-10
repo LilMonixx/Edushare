@@ -1,7 +1,5 @@
 import 'package:flutter/material.dart';
 
-import '../models/Answer.dart';
-
 class AnswerCard extends StatelessWidget {
   final dynamic answer;
 
@@ -38,7 +36,6 @@ class AnswerCard extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-
           Row(
             children: [
               CircleAvatar(
@@ -66,10 +63,7 @@ class AnswerCard extends StatelessWidget {
 
                     Text(
                       formatTime(answer["createdAt"]),
-                      style: const TextStyle(
-                        fontSize: 12,
-                        color: Colors.grey,
-                      ),
+                      style: const TextStyle(fontSize: 12, color: Colors.grey),
                     ),
                   ],
                 ),
@@ -79,15 +73,11 @@ class AnswerCard extends StatelessWidget {
 
           const SizedBox(height: 6),
 
-          Text(
-            answer["content"],
-            style: const TextStyle(height: 1.5),
-          ),
+          Text(answer["content"], style: const TextStyle(height: 1.5)),
         ],
       ),
     );
   }
-
 
   Widget _badge(String text) {
     return Container(
@@ -111,10 +101,7 @@ class AnswerCard extends StatelessWidget {
         children: [
           Icon(Icons.check, size: 12, color: Colors.black),
           SizedBox(width: 4),
-          Text(
-            "Accepted",
-            style: TextStyle(fontSize: 11, color: Colors.black),
-          )
+          Text("Accepted", style: TextStyle(fontSize: 11, color: Colors.black)),
         ],
       ),
     );

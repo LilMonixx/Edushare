@@ -7,8 +7,6 @@ import '../providers/auth_provider.dart';
 import '../widgets/CustomChip.dart';
 import 'SplashScreen.dart';
 
-
-
 class StudyShareScreen extends StatelessWidget {
   const StudyShareScreen({super.key});
 
@@ -18,9 +16,7 @@ class StudyShareScreen extends StatelessWidget {
 
     return Scaffold(
       body: SafeArea(
-
         child: SingleChildScrollView(
-
           child: ConstrainedBox(
             constraints: BoxConstraints(
               minHeight: MediaQuery.of(context).size.height,
@@ -136,7 +132,7 @@ class StudyShareScreen extends StatelessWidget {
 
                     const SizedBox(height: 40),
 
-              // Google Butto
+                    // Google Butto
                     GestureDetector(
                       onTap: () async {
                         final auth = context.read<AuthProvider>();
@@ -152,10 +148,7 @@ class StudyShareScreen extends StatelessWidget {
                         child: Row(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
-                            Image.asset(
-                              "assets/google_logo.png",
-                              height: 32,
-                            ),
+                            Image.asset("assets/google_logo.png", height: 32),
                             const SizedBox(width: 12),
                             const Text(
                               "Continue with Google",
@@ -172,7 +165,7 @@ class StudyShareScreen extends StatelessWidget {
 
                     const SizedBox(height: 20),
 
-              // Terms text
+                    // Terms text
                     Padding(
                       padding: const EdgeInsets.symmetric(horizontal: 10),
                       child: RichText(
@@ -183,29 +176,28 @@ class StudyShareScreen extends StatelessWidget {
                             fontSize: 13,
                           ),
                           children: [
-                            const TextSpan(text: "By continuing, you agree to our ", style:
-                            TextStyle(
-                                fontSize: 18
-
-                            )),
+                            const TextSpan(
+                              text: "By continuing, you agree to our ",
+                              style: TextStyle(fontSize: 18),
+                            ),
                             TextSpan(
                               text: "Terms of Service",
                               style: const TextStyle(
                                 color: Color(0xFF4ADE80),
                                 decoration: TextDecoration.underline,
-                                fontSize: 18
+                                fontSize: 18,
                               ),
                             ),
-                            const TextSpan(text: " and ",
-                              style: const TextStyle(
-                                  fontSize: 18
-                              ),),
+                            const TextSpan(
+                              text: " and ",
+                              style: TextStyle(fontSize: 18),
+                            ),
                             TextSpan(
                               text: "Privacy Policy",
                               style: const TextStyle(
                                 color: Color(0xFF4ADE80),
                                 decoration: TextDecoration.underline,
-                                  fontSize: 18
+                                fontSize: 18,
                               ),
                             ),
                           ],
@@ -242,16 +234,9 @@ class StudyShareScreen extends StatelessWidget {
         children: [
           Icon(icon, color: color, size: 20),
           const SizedBox(width: 10),
-          Text(
-            text,
-            style: const TextStyle(fontSize: 16),
-          ),
+          Text(text, style: const TextStyle(fontSize: 16)),
         ],
       ),
     );
   }
-
-
-
 }
-

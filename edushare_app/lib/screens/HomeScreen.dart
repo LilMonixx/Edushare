@@ -1,4 +1,3 @@
-
 import 'dart:ui';
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:edushare_app/screens/AI_quiz.dart';
@@ -6,6 +5,7 @@ import 'package:edushare_app/screens/Documents.dart';
 import 'package:edushare_app/screens/Image_scan_screen.dart';
 import 'package:edushare_app/screens/UploadQuestion.dart';
 import 'package:edushare_app/screens/search_result.dart';
+import 'package:edushare_app/screens/Chat_with_AI.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -63,7 +63,6 @@ class _HomeScreenState extends State<HomeScreen>
     _initLoad(); // 👈 BỎ COMMENT
   }
 
-
   void _onScroll() {
     if (_scrollController.position.pixels >
         _scrollController.position.maxScrollExtent - 200) {
@@ -83,7 +82,6 @@ class _HomeScreenState extends State<HomeScreen>
     await context.read<QuestionProvider>().loadInitial();
   }
 
-
   @override
   void dispose() {
     _controller.dispose();
@@ -93,7 +91,6 @@ class _HomeScreenState extends State<HomeScreen>
 
   @override
   Widget build(BuildContext context) {
-
     return Scaffold(
       backgroundColor: Colors.black,
 
@@ -125,29 +122,30 @@ class _HomeScreenState extends State<HomeScreen>
       bottomNavigationBar: BottomBar(
         currentIndex: currentIndex,
         onTap: (index) {
-          setState(() {
-            currentIndex = index;
-
-            // đóng menu khi chuyển tab
-            isMenuOpen = false;
-            _controller.reverse();
-          });
+          if (index == 2) {
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (context) => const ChatWithAIScreen()),
+            );
+          } else {
+            setState(() {
+              currentIndex = index;
+              // đóng menu khi chuyển tab
+              isMenuOpen = false;
+              _controller.reverse();
+            });
+          }
         },
       ),
 
       /// FAB
       floatingActionButton: _buildFAB(),
-      floatingActionButtonLocation:
-      FloatingActionButtonLocation.centerDocked,
+      floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
     );
   }
 
-
   Widget _buildHome({Key? key}) {
-    return Container(
-      key: key,
-      child: _buildMainContent(),
-    );
+    return Container(key: key, child: _buildMainContent());
   }
 
   Widget _getScreen(int index) {
@@ -179,10 +177,7 @@ class _HomeScreenState extends State<HomeScreen>
             colors: [Color(0xFF22C55E), Color(0xFF16A34A)],
           ),
           boxShadow: [
-            BoxShadow(
-              color: Colors.green.withOpacity(0.6),
-              blurRadius: 25,
-            )
+            BoxShadow(color: Colors.green.withOpacity(0.6), blurRadius: 25),
           ],
         ),
         child: Icon(
@@ -252,10 +247,7 @@ class _HomeScreenState extends State<HomeScreen>
               children: [
                 Text(
                   "Trending Questions",
-                  style: TextStyle(
-                    fontSize: 20,
-                    fontWeight: FontWeight.bold,
-                  ),
+                  style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
                 ),
                 // Text(
                 //   "See all",
@@ -275,14 +267,11 @@ class _HomeScreenState extends State<HomeScreen>
             else if (questions.isEmpty)
               const Padding(
                 padding: EdgeInsets.all(30),
-                child: Text(
-                  "No data",
-                  style: TextStyle(color: Colors.white54),
-                ),
+                child: Text("No data", style: TextStyle(color: Colors.white54)),
               )
             else
               ...questions.map(
-                    (q) => Padding(
+                (q) => Padding(
                   padding: const EdgeInsets.only(bottom: 16),
                   child: QuestionCard(
                     question: q,
@@ -290,8 +279,7 @@ class _HomeScreenState extends State<HomeScreen>
                       Navigator.push(
                         context,
                         MaterialPageRoute(
-                          builder: (_) =>
-                              QuestionDetailScreen(question: q),
+                          builder: (_) => QuestionDetailScreen(question: q),
                         ),
                       );
                     },
@@ -315,21 +303,20 @@ class _HomeScreenState extends State<HomeScreen>
         CircleAvatar(
           radius: 26,
           backgroundColor: const Color(0xFF22C55E),
-          backgroundImage: (user?.photoURL != null &&
-              user!.photoURL!.isNotEmpty)
+          backgroundImage:
+              (user?.photoURL != null && user!.photoURL!.isNotEmpty)
               ? NetworkImage(user.photoURL!)
               : null,
           child: (user?.photoURL == null || user!.photoURL!.isEmpty)
               ? Text(
-            (user?.displayName != null &&
-                user!.displayName!.isNotEmpty)
-                ? user.displayName![0].toUpperCase()
-                : "?",
-            style: const TextStyle(
-              color: Colors.black,
-              fontWeight: FontWeight.bold,
-            ),
-          )
+                  (user?.displayName != null && user!.displayName!.isNotEmpty)
+                      ? user.displayName![0].toUpperCase()
+                      : "?",
+                  style: const TextStyle(
+                    color: Colors.black,
+                    fontWeight: FontWeight.bold,
+                  ),
+                )
               : null,
         ),
 
@@ -343,8 +330,10 @@ class _HomeScreenState extends State<HomeScreen>
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Text("Good morning",
-                    style: TextStyle(color: Colors.white54)),
+                const Text(
+                  "Good morning",
+                  style: TextStyle(color: Colors.white54),
+                ),
                 const SizedBox(height: 4),
                 Text(
                   user?.displayName ?? "User",
@@ -359,8 +348,7 @@ class _HomeScreenState extends State<HomeScreen>
         ),
 
         IconButton(
-          icon: const Icon(Icons.notifications_none,
-              color: Colors.white70),
+          icon: const Icon(Icons.notifications_none, color: Colors.white70),
           onPressed: () {},
         ),
 
@@ -429,10 +417,7 @@ class _HomeScreenState extends State<HomeScreen>
           },
           child: const Text(
             "Cancel",
-            style: TextStyle(
-              color: Colors.green,
-              fontWeight: FontWeight.bold,
-            ),
+            style: TextStyle(color: Colors.green, fontWeight: FontWeight.bold),
           ),
         ),
       ],
@@ -466,13 +451,14 @@ class _HomeScreenState extends State<HomeScreen>
       _logout(context);
     }
   }
+
   Future<void> _logout(BuildContext context) async {
     await context.read<AuthProvider>().logout();
 
     // 🔥 clear navigation stack → về login sạch
     Navigator.of(context).pushAndRemoveUntil(
       MaterialPageRoute(builder: (_) => const StudyShareScreen()),
-          (route) => false,
+      (route) => false,
     );
   }
 
@@ -495,20 +481,22 @@ class _HomeScreenState extends State<HomeScreen>
               color: Colors.green.withOpacity(0.2),
               shape: BoxShape.circle,
             ),
-            child:
-            const Icon(Icons.auto_awesome, color: Colors.green),
+            child: const Icon(Icons.auto_awesome, color: Colors.green),
           ),
           const SizedBox(width: 16),
           const Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text("Need help with homework?",
-                    style: TextStyle(
-                        fontWeight: FontWeight.bold, fontSize: 16)),
+                Text(
+                  "Need help with homework?",
+                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                ),
                 SizedBox(height: 6),
-                Text("Ask a question and get instant help",
-                    style: TextStyle(color: Colors.white60)),
+                Text(
+                  "Ask a question and get instant help",
+                  style: TextStyle(color: Colors.white60),
+                ),
               ],
             ),
           ),
@@ -524,14 +512,12 @@ class _HomeScreenState extends State<HomeScreen>
         const Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            Text("Subjects",
-                style:
-                TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+            Text(
+              "Subjects",
+              style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+            ),
             Text("See all", style: TextStyle(color: Colors.green)),
           ],
-
-
-
         ),
         const SizedBox(height: 16),
         GridView.count(
@@ -569,7 +555,6 @@ class _HomeScreenState extends State<HomeScreen>
             child: Stack(
               alignment: Alignment.bottomCenter,
               children: [
-
                 RadialItem(
                   index: 0,
                   icon: Icons.psychology,
@@ -596,7 +581,6 @@ class _HomeScreenState extends State<HomeScreen>
                     _openRadialScreen(1);
                   },
                 ),
-
 
                 RadialItem(
                   index: 2,
@@ -627,18 +611,14 @@ class _HomeScreenState extends State<HomeScreen>
 
     Navigator.push(
       context,
-      MaterialPageRoute(
-        builder: (_) => radialScreens[index],
-      ),
+      MaterialPageRoute(builder: (_) => radialScreens[index]),
     );
   }
-
 
   Future<bool> hasInternet() async {
     final result = await Connectivity().checkConnectivity();
     return result != ConnectivityResult.none;
   }
-
 }
 
 // ================= PLACEHOLDER SCREENS =================
@@ -648,7 +628,8 @@ class DocsScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return const Center(
-        child: Text("Docs", style: TextStyle(color: Colors.white)));
+      child: Text("Docs", style: TextStyle(color: Colors.white)),
+    );
   }
 }
 
@@ -658,7 +639,8 @@ class ChatScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return const Center(
-        child: Text("Chat", style: TextStyle(color: Colors.white)));
+      child: Text("Chat", style: TextStyle(color: Colors.white)),
+    );
   }
 }
 
@@ -668,6 +650,7 @@ class ProfileScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return const Center(
-        child: Text("Profile", style: TextStyle(color: Colors.white)));
+      child: Text("Profile", style: TextStyle(color: Colors.white)),
+    );
   }
 }

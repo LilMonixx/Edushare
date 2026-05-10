@@ -1,4 +1,3 @@
-import 'dart:ui';
 import 'package:camera/camera.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
@@ -13,8 +12,6 @@ class AIScanScreen extends StatefulWidget {
 class _AIScanScreenState extends State<AIScanScreen> {
   CameraController? controller;
   List<CameraDescription>? cameras;
-
-
 
   bool isFlashOn = false;
   bool isRearCamera = true;
@@ -59,9 +56,7 @@ class _AIScanScreenState extends State<AIScanScreen> {
 
     isFlashOn = !isFlashOn;
 
-    await controller!.setFlashMode(
-      isFlashOn ? FlashMode.torch : FlashMode.off,
-    );
+    await controller!.setFlashMode(isFlashOn ? FlashMode.torch : FlashMode.off);
 
     setState(() {});
   }
@@ -73,11 +68,9 @@ class _AIScanScreenState extends State<AIScanScreen> {
     isRearCamera = !isRearCamera;
 
     final cam = cameras!.firstWhere(
-          (c) =>
-      c.lensDirection ==
-          (isRearCamera
-              ? CameraLensDirection.back
-              : CameraLensDirection.front),
+      (c) =>
+          c.lensDirection ==
+          (isRearCamera ? CameraLensDirection.back : CameraLensDirection.front),
     );
 
     setState(() => isLoading = true);
@@ -137,12 +130,12 @@ class _AIScanScreenState extends State<AIScanScreen> {
       body: Stack(
         children: [
           // CAMERA PREVIEW
-          if (!isLoading && controller != null && controller!.value.isInitialized)
+          if (!isLoading &&
+              controller != null &&
+              controller!.value.isInitialized)
             CameraPreview(controller!)
           else
-            const Center(
-              child: CircularProgressIndicator(color: green),
-            ),
+            const Center(child: CircularProgressIndicator(color: green)),
 
           // DARK OVERLAY
           Container(color: Colors.black.withOpacity(0.4)),

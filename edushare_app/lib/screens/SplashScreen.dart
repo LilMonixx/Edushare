@@ -3,12 +3,8 @@ import 'dart:math' as math;
 
 import 'HomeScreen.dart';
 
-
-
 class SplashScreen extends StatefulWidget {
-
-
-
+  const SplashScreen({super.key});
 
   @override
   State<SplashScreen> createState() => _SplashScreenState();
@@ -61,12 +57,14 @@ class _SplashScreenState extends State<SplashScreen>
       duration: const Duration(milliseconds: 1000),
       vsync: this,
     );
-    _glowScale = Tween<double>(begin: 0.5, end: 1.0).animate(
-      CurvedAnimation(parent: _glowController, curve: Curves.easeOut),
-    );
-    _glowOpacity = Tween<double>(begin: 0.0, end: 1.0).animate(
-      CurvedAnimation(parent: _glowController, curve: Curves.easeOut),
-    );
+    _glowScale = Tween<double>(
+      begin: 0.5,
+      end: 1.0,
+    ).animate(CurvedAnimation(parent: _glowController, curve: Curves.easeOut));
+    _glowOpacity = Tween<double>(
+      begin: 0.0,
+      end: 1.0,
+    ).animate(CurvedAnimation(parent: _glowController, curve: Curves.easeOut));
 
     // Logo animation
     _logoController = AnimationController(
@@ -76,9 +74,10 @@ class _SplashScreenState extends State<SplashScreen>
     _logoScale = Tween<double>(begin: 0.75, end: 1.0).animate(
       CurvedAnimation(parent: _logoController, curve: Curves.easeOutBack),
     );
-    _logoOpacity = Tween<double>(begin: 0.0, end: 1.0).animate(
-      CurvedAnimation(parent: _logoController, curve: Curves.easeOut),
-    );
+    _logoOpacity = Tween<double>(
+      begin: 0.0,
+      end: 1.0,
+    ).animate(CurvedAnimation(parent: _logoController, curve: Curves.easeOut));
     _logoSlide = Tween<Offset>(
       begin: const Offset(0, 0.15),
       end: Offset.zero,
@@ -95,9 +94,10 @@ class _SplashScreenState extends State<SplashScreen>
       duration: const Duration(milliseconds: 500),
       vsync: this,
     );
-    _textOpacity = Tween<double>(begin: 0.0, end: 1.0).animate(
-      CurvedAnimation(parent: _textController, curve: Curves.easeOut),
-    );
+    _textOpacity = Tween<double>(
+      begin: 0.0,
+      end: 1.0,
+    ).animate(CurvedAnimation(parent: _textController, curve: Curves.easeOut));
     _textSlide = Tween<Offset>(
       begin: const Offset(0, 0.3),
       end: Offset.zero,
@@ -129,12 +129,14 @@ class _SplashScreenState extends State<SplashScreen>
       duration: const Duration(milliseconds: 500),
       vsync: this,
     );
-    _exitOpacity = Tween<double>(begin: 0.0, end: 1.0).animate(
-      CurvedAnimation(parent: _exitController, curve: Curves.easeIn),
-    );
-    _exitScale = Tween<double>(begin: 1.0, end: 1.1).animate(
-      CurvedAnimation(parent: _exitController, curve: Curves.easeIn),
-    );
+    _exitOpacity = Tween<double>(
+      begin: 0.0,
+      end: 1.0,
+    ).animate(CurvedAnimation(parent: _exitController, curve: Curves.easeIn));
+    _exitScale = Tween<double>(
+      begin: 1.0,
+      end: 1.1,
+    ).animate(CurvedAnimation(parent: _exitController, curve: Curves.easeIn));
   }
 
   void _startAnimationSequence() async {
@@ -160,13 +162,13 @@ class _SplashScreenState extends State<SplashScreen>
 
     await Future.delayed(const Duration(milliseconds: 500));
 
-// gọi API refresh token
+    // gọi API refresh token
     //   await AuthService.refreshToken();
 
-// 🔥 tránh crash
+    // 🔥 tránh crash
     if (!mounted) return;
-//
-// // navigate sang Home
+    //
+    // // navigate sang Home
     Navigator.pushReplacement(
       context,
       MaterialPageRoute(builder: (_) => const HomeScreen()),
@@ -279,13 +281,12 @@ class _SplashScreenState extends State<SplashScreen>
               animation: Listenable.merge([_logoController, _exitController]),
               builder: (context, child) {
                 return Opacity(
-                  opacity: _stage >= 5 ? 1 - _exitOpacity.value : _logoOpacity.value,
+                  opacity: _stage >= 5
+                      ? 1 - _exitOpacity.value
+                      : _logoOpacity.value,
                   child: Transform.scale(
                     scale: _stage >= 5 ? _exitScale.value : _logoScale.value,
-                    child: SlideTransition(
-                      position: _logoSlide,
-                      child: child,
-                    ),
+                    child: SlideTransition(position: _logoSlide, child: child),
                   ),
                 );
               },
@@ -312,9 +313,7 @@ class _SplashScreenState extends State<SplashScreen>
                             ),
                           ],
                         ),
-                        child: Center(
-                          child: _buildBookIcon(),
-                        ),
+                        child: Center(child: _buildBookIcon()),
                       ),
 
                       // Sparkle badge
@@ -402,10 +401,7 @@ class _SplashScreenState extends State<SplashScreen>
                     },
                     child: const Text(
                       'Learn together, grow together',
-                      style: TextStyle(
-                        fontSize: 14,
-                        color: mutedColor,
-                      ),
+                      style: TextStyle(fontSize: 14, color: mutedColor),
                     ),
                   ),
                 ],
@@ -453,7 +449,12 @@ class _SplashScreenState extends State<SplashScreen>
     );
   }
 
-  Widget _buildFloatingParticle(double left, double top, double size, double delay) {
+  Widget _buildFloatingParticle(
+    double left,
+    double top,
+    double size,
+    double delay,
+  ) {
     return Positioned(
       left: left,
       top: top,
@@ -554,7 +555,12 @@ class BookIconPainter extends CustomPainter {
     // Bottom page line
     final bottomPath = Path();
     bottomPath.moveTo(4 * scale, 19.5 * scale);
-    bottomPath.quadraticBezierTo(4 * scale, 17 * scale, 6.5 * scale, 17 * scale);
+    bottomPath.quadraticBezierTo(
+      4 * scale,
+      17 * scale,
+      6.5 * scale,
+      17 * scale,
+    );
     bottomPath.lineTo(20 * scale, 17 * scale);
     canvas.drawPath(bottomPath, paint);
 

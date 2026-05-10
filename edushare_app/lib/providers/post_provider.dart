@@ -27,8 +27,9 @@ class PostProvider extends ChangeNotifier {
       if (idToken == null) {
         print("Token is null");
         return false;
-      } else
+      } else {
         print("istoken: $idToken" );
+      }
 
       await _repo.createPost(
         idToken: idToken,
