@@ -68,6 +68,7 @@ class _QuestionDetailScreenState extends State<QuestionDetailScreen> {
     final answers = answerProvider.answers;
     final loading = answerProvider.loading;
     final likeProvider = context.watch<LikeProvider>();
+    final user = FirebaseAuth.instance.currentUser;
 
     return Scaffold(
       backgroundColor: const Color(0xFF0B0B0B),
@@ -494,13 +495,13 @@ class _QuestionDetailScreenState extends State<QuestionDetailScreen> {
                   CircleAvatar(
                     radius: 22,
                     backgroundColor: const Color(0xFF1C1C1E),
-                    backgroundImage: widget.question.userAvatar != null
-                        ? NetworkImage(widget.question.userAvatar!)
+                    backgroundImage: user?.photoURL != null
+                        ? NetworkImage(user!.photoURL!)
                         : null,
-                    child: widget.question.userAvatar == null
+                    child: user?.photoURL == null
                         ? Text(
-                      widget.question.userName.isNotEmpty
-                          ? widget.question.userName[0].toUpperCase()
+                      user?.displayName?.isNotEmpty == true
+                          ? user!.displayName![0].toUpperCase()
                           : "?",
                     )
                         : null,

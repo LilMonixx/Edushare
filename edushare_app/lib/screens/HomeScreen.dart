@@ -9,6 +9,7 @@ import 'package:edushare_app/screens/search_result.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
+import '../providers/NotificationProvider.dart';
 import '../providers/auth_provider.dart';
 import '../models/Question.dart';
 import '../providers/question_provider.dart';
@@ -16,6 +17,7 @@ import '../widgets/BottomBar.dart';
 import '../widgets/QuestionCard.dart';
 import '../widgets/Subject.dart';
 import '../widgets/radialItem.dart';
+import 'NotificationScreen.dart';
 import 'Question_Detail.dart';
 import 'login.dart';
 
@@ -61,6 +63,15 @@ class _HomeScreenState extends State<HomeScreen>
     ];
 
     _initLoad(); // 👈 BỎ COMMENT
+
+    Future.microtask(() {
+      final user = context.read<AuthProvider>().user;
+
+      if (user != null) {
+        context.read<NotificationProvider>()
+            .listenNotifications(user.uid);
+      }
+    });
   }
 
 
@@ -87,7 +98,7 @@ class _HomeScreenState extends State<HomeScreen>
   @override
   void dispose() {
     _controller.dispose();
-    _scrollController.dispose(); // 👈 THÊM
+    _scrollController.dispose();
     super.dispose();
   }
 
@@ -358,10 +369,47 @@ class _HomeScreenState extends State<HomeScreen>
           ),
         ),
 
-        IconButton(
-          icon: const Icon(Icons.notifications_none,
-              color: Colors.white70),
-          onPressed: () {},
+        Stack(
+          children: [
+            IconButton(
+              icon: const Icon(Icons.notifications_none, color: Colors.white70),
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (_) => const NotificationsScreen(),
+                  ),
+                );
+              },
+            ),
+
+            Positioned(
+              right: 8,
+              top: 8,
+              child: Consumer<NotificationProvider>(
+                builder: (context, provider, child) {
+                  final count = provider.unreadCount;
+
+                  if (count == 0) return const SizedBox();
+
+                  return Container(
+                    padding: const EdgeInsets.all(5),
+                    decoration: const BoxDecoration(
+                      color: Colors.red,
+                      shape: BoxShape.circle,
+                    ),
+                    child: Text(
+                      count > 9 ? "9+" : "$count",
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 10,
+                      ),
+                    ),
+                  );
+                },
+              ),
+            ),
+          ],
         ),
 
         IconButton(
@@ -641,7 +689,7 @@ class _HomeScreenState extends State<HomeScreen>
 
 }
 
-// ================= PLACEHOLDER SCREENS =================
+
 class DocsScreen extends StatelessWidget {
   const DocsScreen({super.key});
 
