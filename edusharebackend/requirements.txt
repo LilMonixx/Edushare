@@ -7,3 +7,4 @@ python-multipart  # Để nhận file ảnh scan từ mobile
 PyJWT==2.12.1
 algoliasearch==4.40.0
 python-dotenv==1.2.2
+google-genai==2.0.1
