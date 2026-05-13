@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 class DocFile {
-  final String id;     // 👈 định danh (dùng cho DB, API)
+  final String id;
   final String title;
   final String size;
   final String time;
-  final String path;   // 👈 đường dẫn file (để mở)
+  final String path;
   final IconData icon;
 
   DocFile({

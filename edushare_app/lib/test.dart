@@ -13,87 +13,114 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return const MaterialApp(
       debugShowCheckedModeBanner: false,
-      home: VisionTestPage(),
+      home: TestAIChatScreen(),
     );
   }
 }
 
-class VisionTestPage extends StatefulWidget {
-  const VisionTestPage({super.key});
+class TestAIChatScreen extends StatefulWidget {
+  const TestAIChatScreen({super.key});
 
   @override
-  State<VisionTestPage> createState() => _VisionTestPageState();
+  State<TestAIChatScreen> createState() => _TestAIChatScreenState();
 }
 
-class _VisionTestPageState extends State<VisionTestPage> {
-  String result = "Chưa test";
+class _TestAIChatScreenState extends State<TestAIChatScreen> {
+  final TextEditingController controller = TextEditingController();
+  String response = "";
+  bool loading = false;
 
-  final String apiKey = "AIzaSyBLY0n0-Y0hase5T02B8smtVpc9di2rZcM";
-
-  Future<void> testOCR() async {
+  Future<void> sendMessage() async {
     setState(() {
-      result = "Đang xử lý...";
+      loading = true;
+      response = "";
     });
 
-    final url = Uri.parse(
-      "https://vision.googleapis.com/v1/images:annotate?key=$apiKey",
-    );
-
-    final response = await http.post(
-      url,
-      headers: {"Content-Type": "application/json"},
-      body: jsonEncode({
-        "requests": [
-          {
-            "image": {
-              "source": {
-                "imageUri":
-                "https://upload.wikimedia.org/wikipedia/commons/thumb/4/4b/Document.jpg/640px-Document.jpg"
-              }
-            },
-            "features": [
-              {"type": "TEXT_DETECTION"}
-            ]
-          }
-        ]
-      }),
-    );
-
-    final data = jsonDecode(response.body);
-
     try {
-      final text = data["responses"][0]["fullTextAnnotation"]["text"];
+      final res = await http.post(
+        Uri.parse("http://10.0.2.2:5678/webhook/ai-chat"),
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: jsonEncode({
+          "message": controller.text,
+        }),
+      );
 
-      setState(() {
-        result = text ?? "Không nhận được text";
-      });
+      print("STATUS: ${res.statusCode}");
+      print("BODY: ${res.body}");
+
+      String body = res.body.trim();
+
+      if (body.isEmpty) {
+        setState(() {
+          response = "Empty response from server";
+          loading = false;
+        });
+        return;
+      }
+
+      if (body.startsWith("=")) {
+        body = body.substring(1);
+      }
+
+      try {
+        final data = jsonDecode(body);
+
+        if (data is Map && data["message"] != null) {
+          response = data["message"];
+        } else {
+          response = body;
+        }
+      } catch (_) {
+        // Không phải JSON → dùng text luôn
+        response = body;
+      }
+
     } catch (e) {
-      setState(() {
-        result = "Lỗi: ${response.body}";
-      });
+      response = "Error: $e";
     }
+
+    setState(() {
+      loading = false;
+    });
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Colors.black,
       appBar: AppBar(
-        title: const Text("Vision API Test"),
+        title: const Text("AI Chat Test"),
+        backgroundColor: Colors.green,
       ),
       body: Padding(
         padding: const EdgeInsets.all(16),
         child: Column(
           children: [
-            ElevatedButton(
-              onPressed: testOCR,
-              child: const Text("Test OCR"),
+            TextField(
+              controller: controller,
+              style: const TextStyle(color: Colors.white),
+              decoration: const InputDecoration(
+                hintText: "Enter message...",
+                hintStyle: TextStyle(color: Colors.white54),
+              ),
             ),
+
             const SizedBox(height: 20),
+
+            ElevatedButton(
+              onPressed: loading ? null : sendMessage,
+              child: Text(loading ? "Loading..." : "Send"),
+            ),
+
+            const SizedBox(height: 20),
+
             Expanded(
               child: SingleChildScrollView(
                 child: Text(
-                  result,
-                  style: const TextStyle(fontSize: 16),
+                  response,
+                  style: const TextStyle(color: Colors.white),
                 ),
               ),
             ),

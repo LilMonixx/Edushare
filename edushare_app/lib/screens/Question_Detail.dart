@@ -59,7 +59,6 @@ class _QuestionDetailScreenState extends State<QuestionDetailScreen> {
 
     print("Share: $text");
 
-    // TODO: dùng share_plus nếu muốn share thật
   }
 
   @override

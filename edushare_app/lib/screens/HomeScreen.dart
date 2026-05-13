@@ -17,6 +17,7 @@ import '../widgets/BottomBar.dart';
 import '../widgets/QuestionCard.dart';
 import '../widgets/Subject.dart';
 import '../widgets/radialItem.dart';
+import 'AI_chat.dart';
 import 'NotificationScreen.dart';
 import 'Question_Detail.dart';
 import 'login.dart';
@@ -30,6 +31,30 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen>
     with SingleTickerProviderStateMixin {
+  bool showAllSubjects = false;
+  final List<String> subjects = [
+    "Math",
+    "English",
+    "Physics",
+    "Chemistry",
+    "Biology",
+    "History",
+    "Geography",
+    "Literature",
+    "Computer Science",
+    "Economics",
+    "Art",
+    "Music",
+    "Philosophy",
+    "Psychology",
+    "Sociology",
+    "Political Science",
+    "Law",
+    "Statistics",
+    "Engineering",
+    "Business"
+  ];
+
   bool isMenuOpen = false;
   late AnimationController _controller;
 
@@ -60,6 +85,7 @@ class _HomeScreenState extends State<HomeScreen>
       const QuizGeneratorScreen(),
       const CreatePostScreen(),
       const AIScanScreen(),
+
     ];
 
     _initLoad(); // 👈 BỎ COMMENT
@@ -167,6 +193,8 @@ class _HomeScreenState extends State<HomeScreen>
         return _buildHome(key: const ValueKey(0));
       case 1:
         return const MyDocumentsScreen(key: ValueKey(1));
+      case 2:
+        return const StudyAIScreen(key: ValueKey(2));
       default:
         return _buildHome(key: const ValueKey(0));
     }
@@ -567,37 +595,109 @@ class _HomeScreenState extends State<HomeScreen>
 
   // ================= SUBJECTS =================
   Widget _buildSubjects() {
+    final displaySubjects =
+    showAllSubjects ? subjects : subjects.take(8).toList();
+
+    final icons = [
+      Icons.calculate,
+      Icons.menu_book,
+      Icons.science,
+      Icons.biotech,
+      Icons.eco,
+      Icons.history_edu,
+      Icons.public,
+      Icons.auto_stories,
+      Icons.code,
+      Icons.attach_money,
+      Icons.brush,
+      Icons.music_note,
+      Icons.psychology,
+      Icons.self_improvement,
+      Icons.groups,
+      Icons.account_balance,
+      Icons.gavel,
+      Icons.bar_chart,
+      Icons.engineering,
+      Icons.business_center,
+    ];
+
+    final colors = [
+      Colors.blue,
+      Colors.green,
+      Colors.orange,
+      Colors.purple,
+      Colors.teal,
+      Colors.amber,
+      Colors.cyan,
+      Colors.red,
+      Colors.pink,
+      Colors.lime,
+      Colors.deepOrange,
+      Colors.indigo,
+      Colors.deepPurple,
+      Colors.lightBlue,
+      Colors.brown,
+      Colors.blueGrey,
+      Colors.greenAccent,
+      Colors.orangeAccent,
+      Colors.cyanAccent,
+      Colors.purpleAccent,
+    ];
+
     return Column(
       children: [
-        const Row(
+        Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            Text("Subjects",
-                style:
-                TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
-            Text("See all", style: TextStyle(color: Colors.green)),
+            const Text(
+              "Subjects",
+              style: TextStyle(
+                fontSize: 20,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+
+            GestureDetector(
+              onTap: () {
+                setState(() {
+                  showAllSubjects = !showAllSubjects;
+                });
+              },
+              child: Text(
+                showAllSubjects ? "Show less" : "See all",
+                style: const TextStyle(
+                  color: Colors.green,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ),
           ],
-
-
-
         ),
+
         const SizedBox(height: 16),
-        GridView.count(
-          crossAxisCount: 4,
-          shrinkWrap: true,
-          crossAxisSpacing: 14,
-          mainAxisSpacing: 14,
-          physics: const NeverScrollableScrollPhysics(),
-          children: const [
-            Subject("Math", Icons.calculate, Colors.blue),
-            Subject("English", Icons.menu_book, Colors.green),
-            Subject("Science", Icons.science, Colors.orange),
-            Subject("Geography", Icons.public, Colors.cyan),
-            Subject("History", Icons.history, Colors.amber),
-            Subject("Coding", Icons.code, Colors.pink),
-            Subject("Art", Icons.brush, Colors.red),
-            Subject("Music", Icons.music_note, Colors.indigo),
-          ],
+
+        AnimatedSize(
+          duration: const Duration(milliseconds: 300),
+          curve: Curves.easeInOut,
+          child: GridView.builder(
+            shrinkWrap: true,
+            physics: const NeverScrollableScrollPhysics(),
+            itemCount: displaySubjects.length,
+            gridDelegate:
+            const SliverGridDelegateWithFixedCrossAxisCount(
+              crossAxisCount: 4,
+              crossAxisSpacing: 14,
+              mainAxisSpacing: 14,
+              childAspectRatio: 0.8,
+            ),
+            itemBuilder: (context, index) {
+              return Subject(
+                displaySubjects[index],
+                icons[index % icons.length],
+                colors[index % colors.length],
+              );
+            },
+          ),
         ),
       ],
     );

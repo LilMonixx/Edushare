@@ -2,8 +2,11 @@ import 'package:edushare_app/providers/AnswerProvider.dart';
 import 'package:edushare_app/providers/AuthGate.dart';
 import 'package:edushare_app/providers/LikeProvider.dart';
 import 'package:edushare_app/providers/NotificationProvider.dart';
+import 'package:edushare_app/providers/QuizProvider.dart';
+import 'package:edushare_app/providers/chat_provider.dart';
 import 'package:edushare_app/providers/post_provider.dart';
 import 'package:edushare_app/providers/question_provider.dart';
+import 'package:edushare_app/repository/quiz_repository.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:provider/provider.dart';
@@ -50,6 +53,10 @@ class EduShareApp extends StatelessWidget {
         ChangeNotifierProvider(create: (_) => LikeProvider()),
 
         ChangeNotifierProvider(create: (_) => NotificationProvider()),
+        ChangeNotifierProvider(create: (_) => ChatProvider()),
+        ChangeNotifierProvider(
+          create: (_) => QuizProvider(QuizRepository()),
+        ),
       ],
       child: MaterialApp(
         title: 'EduShare',
